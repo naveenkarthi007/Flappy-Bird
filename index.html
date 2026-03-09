@@ -2,10 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Flappy Bird</title>
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
 </head>
 <body>
-    
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="startScreen" class="screen">
+            <div class="start-coins-display">
+                <span class="coin-icon"></span>
+                <span id="startCoinsAmount">0</span>
+            </div>
+            <div class="get-ready-sprite"></div>
+            <div id="startBtn" class="start-sprite-button"></div>
+            <div id="shopBtn" class="shop-sprite-button"></div>
+            <a href="features.html" class="features-link">Features</a>
+        </div>
+        <div id="getReadyScreen" class="screen hidden">
+            <div class="get-ready-text-sprite"></div>
+            <div class="guidance-sprite"></div>
+        </div>
+        <div id="gameOverScreen" class="screen hidden">
+            <div class="game-over-sprite"></div>
+            <div class="scoreboard-sprite">
+                <div id="coinDisplay" class="coin-hidden"></div>
+                <div id="finalScore">0</div>
+                <div id="bestScore">0</div>
+                <div id="newBestSprite" class="new-best-sprite hidden"></div>
+            </div>
+            <div id="restartBtn" class="restart-sprite-button"></div>
+        </div>
+        <div id="shopScreen" class="screen hidden">
+            <div class="shop-panel">
+                <div id="closeShopBtn" class="close-shop-sprite"></div>
+                <div class="shop-header">
+                    <div class="shop-title">SHOP</div>
+                    <div class="shop-coins-display">
+                        <span class="coin-icon"></span>
+                        <span id="shopCoinsAmount">0</span>
+                    </div>
+                </div>
+                <div class="shop-items-row">
+                    <div class="shop-item-card">
+                        <div class="shop-item-icon-wrap">
+                            <div class="shield-sprite shop-item" data-item="shield" data-price="20"></div>
+                        </div>
+                        <div class="shop-item-name">Shield</div>
+                        <div class="shop-item-buy">
+                            <span class="price-coin-icon"></span>
+                            <span>20</span>
+                        </div>
+                    </div>
+                    <div class="shop-item-card">
+                        <div class="shop-item-icon-wrap">
+                            <div class="power-sprite shop-item" data-item="power" data-price="15"></div>
+                        </div>
+                        <div class="shop-item-name">Power</div>
+                        <div class="shop-item-buy">
+                            <span class="price-coin-icon"></span>
+                            <span>15</span>
+                        </div>
+                    </div>
+                    <div class="shop-item-card">
+                        <div class="shop-item-icon-wrap">
+                            <div class="anti-bomb-sprite shop-item" data-item="antibomb" data-price="10"></div>
+                        </div>
+                        <div class="shop-item-name">Anti-Bomb</div>
+                        <div class="shop-item-buy">
+                            <span class="price-coin-icon"></span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="shopMessage" class="shop-message hidden"></div>
+        </div>
+        <div id="inGameScore" class="in-game-score hidden"></div>
+        <div id="inGameCoins" class="in-game-coins hidden">
+            <span class="mini-coin-icon"></span>
+            <span id="inGameCoinsAmount">0</span>
+        </div>
+        <div id="gameControls" class="game-controls hidden">
+            <div class="pass-sprite" id="toggleBtn" title="Pause Game"></div>
+        </div>
+        <div id="powersContainer" class="powers-container hidden">
+            <div class="power-btn-wrapper">
+                <div id="powerBtn" class="power-icon power-sprite" title="Power"></div>
+                <span class="power-qty" id="powerQty">0</span>
+            </div>
+            <div class="power-btn-wrapper">
+                <div id="shieldBtn" class="power-icon shield-sprite" title="Shield"></div>
+                <span class="power-qty" id="shieldQty">0</span>
+            </div>
+            <div class="power-btn-wrapper">
+                <div id="gravityBtn" class="power-icon gravity-sprite" title="Anti-Rocket"></div>
+                <span class="power-qty" id="gravityQty">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bird.js?v=3.1"></script>
+    <script src="js/pipe.js?v=3.1"></script>
+    <script src="js/coin.js?v=3.0"></script>
+    <script src="js/powerup.js?v=3.1"></script>
+    <script src="js/shield.js?v=3.0"></script>
+    <script src="js/rocket.js?v=3.0"></script>
+    <script src="js/gravity.js?v=3.0"></script>
+    <script src="js/portal.js?v=3.0"></script>
+    <script src="js/spaceWorld.js?v=3.0"></script>
+    <script src="js/game.js?v=3.1"></script>
 </body>
-</html>
+</html>              
