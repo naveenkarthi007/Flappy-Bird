@@ -6,11 +6,41 @@ class Game {
 
         this.canvas.width = 400;
         this.canvas.height = 600;
-        this.groundHeight = 90;
+        this.groundHeight = 80;
         this.baseGroundY = this.canvas.height - this.groundHeight;
+        this.sceneSpriteLoaded = false;
+        this.sceneSpriteSheet = new Image();
+        this.sceneSpriteSheet.onload = () => {
+            this.sceneSpriteLoaded = true;
+        };
+        this.sceneSpriteSheet.onerror = () => {
+            this.sceneSpriteLoaded = false;
+        };
+        this.sceneSpriteSheet.src = "assets/images/flappybirdassets.png";
+        this.sceneSprites = {
+            background: {
+                x: 0,
+                y: 0,
+                width: 144,
+                height: 256,
+                cropY: 60,
+                cropHeight: 150,
+            },
+            ground: {
+                x: 146,
+                y: 0,
+                width: 154,
+                height: 56,
+            },
+        };
+        this.bgX = 0;
+        this.bgSpeed = 0.3;
+        this.groundX = 0;
+        this.groundSpeed = 1.5;
 
         this.bird = new Bird(this.canvas);
         this.pipeManager = new PipeManager(this.canvas);
+        this.pipeManager.groundY = this.baseGroundY;
 
         this.state = "ready";
         this.lastTime = 0;
@@ -73,6 +103,8 @@ class Game {
     resetRound() {
         this.bird.reset();
         this.pipeManager.reset();
+        this.bgX = 0;
+        this.groundX = 0;
         this.lastTime = 0;
     }
 
@@ -94,6 +126,9 @@ class Game {
             return;
         }
 
+        this.bgX -= this.bgSpeed;
+        this.groundX -= this.groundSpeed;
+
         this.pipeManager.update(currentTime);
 
         if (this.pipeManager.checkCollision(this.bird, this.baseGroundY)) {
@@ -107,6 +142,40 @@ class Game {
 
     drawBackground() {
         const ctx = this.ctx;
+
+        if (this.sceneSpriteLoaded) {
+            const sprite = this.sceneSprites.background;
+            const scaledWidth = sprite.width * 2.7;
+            const scaledHeight = sprite.cropHeight * 2.7;
+            const bgY = this.baseGroundY - scaledHeight;
+            const tilesNeeded = Math.ceil(this.canvas.width / scaledWidth) + 2;
+
+            if (this.bgX <= -scaledWidth) {
+                this.bgX = 0;
+            }
+
+            ctx.imageSmoothingEnabled = false;
+            ctx.fillStyle = "#70c5ce";
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            for (let index = 0; index < tilesNeeded; index += 1) {
+                const xPos = this.bgX + index * scaledWidth;
+
+                ctx.drawImage(
+                    this.sceneSpriteSheet,
+                    sprite.x,
+                    sprite.y + sprite.cropY,
+                    sprite.width,
+                    sprite.cropHeight,
+                    xPos,
+                    bgY,
+                    scaledWidth,
+                    scaledHeight
+                );
+            }
+            return;
+        }
+
         const skyGradient = ctx.createLinearGradient(0, 0, 0, this.canvas.height);
         skyGradient.addColorStop(0, "#7ed7f7");
         skyGradient.addColorStop(0.7, "#d5f3ff");
@@ -131,6 +200,34 @@ class Game {
 
     drawGround() {
         const ctx = this.ctx;
+
+        if (this.sceneSpriteLoaded) {
+            const sprite = this.sceneSprites.ground;
+            const tilesNeeded = Math.ceil(this.canvas.width / sprite.width) + 2;
+
+            if (this.groundX <= -sprite.width) {
+                this.groundX = 0;
+            }
+
+            ctx.imageSmoothingEnabled = false;
+
+            for (let index = 0; index < tilesNeeded; index += 1) {
+                const xPos = Math.round(this.groundX + index * sprite.width);
+
+                ctx.drawImage(
+                    this.sceneSpriteSheet,
+                    sprite.x,
+                    sprite.y,
+                    sprite.width,
+                    sprite.height,
+                    xPos,
+                    this.baseGroundY,
+                    sprite.width,
+                    this.groundHeight
+                );
+            }
+            return;
+        }
 
         ctx.fillStyle = "#ded895";
         ctx.fillRect(0, this.baseGroundY, this.canvas.width, this.groundHeight);
