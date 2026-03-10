@@ -26,7 +26,7 @@ class Game {
         const trigger = () => this.handleInput();
 
         window.addEventListener("keydown", (event) => {
-            if (event.code === "Space" || event.code === "ArrowUp") {
+            if (event.code === "Space" || event.code === "ArrowUp" || event.code === "Tab") {
                 event.preventDefault();
                 trigger();
             }
@@ -160,7 +160,7 @@ class Game {
             ctx.textAlign = "center";
             ctx.fillText("Tap to Fly", this.canvas.width / 2, 70);
             ctx.font = "16px Segoe UI";
-            ctx.fillText("Press Space or click", this.canvas.width / 2, 95);
+            ctx.fillText("Press Tab, Space or click", this.canvas.width / 2, 95);
         }
 
         if (this.state === "game-over") {
