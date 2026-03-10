@@ -1,73 +1,163 @@
-class PipeManager {
+class Pipe{
+    constructor(canvas,x,spritesheet,spriteLoaded,groundy){
+        this.canvas=canvas;
+        this.ctx=canvas.getContext("2d");
+        this.spriteSheet=this.spriteSheet;
+        this.sprtieLoaded=spriteLoaded;
+        this.groundY=this.groundY;
+        this.width=70;
+        this.gap=160;
+        this.x=x;
+        this.speed=2.8;
+        this.passed=false;
+        this.sprites={
+            topPipe:{
+                x:302,
+                y:0,
+                width:26,
+                height:135,
+            },
+            bottomPipe:{
+                x:330,
+                y:0,
+                width:26,
+                height:121,
+            },
+        };
+        
+        const minTop=80;
+        const maxTop=this.groundY-this.gap-90;
+        this.topHeight = getRandomIt(minTop,maxTop);
+        this.bottomY = this.topHeight+this.gap;
+    }
+
+    update() {
+        this.x-=this.speed;
+    }
+    draw() {
+        const ctx=this.ctx;
+        ctx.imagesmoothingEnalbled=false;
+        if(this.spriteLoaded && this.spriteSheet) {
+            const capHeight = 12;
+            const pipeX = Math.round(this.x);
+            const pipeWidth = Math.round(this.width);
+            const topSpr = this.sprites.topPipe;
+            const topBodySrcHeight = topSpr.height-capHeight;
+            const topbodySrcHeight = topSpr.y+topSpr.height-capHeight;
+            const topBodyDrawHeight = Math.max(0,Math.round(this.topHeight-capHeight));
+            for(let y=0 ;y<topBodyDrawHeight;y+=topBodySrcHeight){
+                const drawHeight=Math.min(topBodySrcHeight,topBodyDrawHeight-y);
+                ctx.drawImage(
+                    this.spriteSheet,
+                    topSpr.x,
+                    topCapArcY,
+                    topSpr.width,
+                    drawHeight,
+                    pipeX,
+                    y,
+                    pipeWidth,
+                    drawHeight  
+                );
+            }
+            return;
+        }
+        this.drawFallbackPipes();
+    }
+
+    drawFallbackPipes(){
+        const ctx=this.ctx;
+        const pipeColor = "#73BF2E";
+        const pipeDarkColor = "#558B2F";
+        const pipeCapColor = "#8BC34A";
+        ctx.fillStyle=pipeColor;
+        ctx.fillRect(this.x,0,this.width,this.topHeight);
+        ctx.fillRect(this.x,this.bottomY,8,this.groundY-this.groundY-this.bottomY);
+        ctx.fillStyle = pipeDarkColor;
+        ctx.fillRect(this.x-5,this.topHeight-30,this.width+10,30);
+        ctx.fillRect(this.x,this.bottomY,8,this.groundY-this.bottomY);
+        ctx.fillStyle=pipeCapColor;
+        ctx.fillRect(this.x-5,this.topHeight-30,this.width+10,30);
+        ctx.Rect(this.x-5,this.bottomY,this.width+10,30);
+    }
+    getTopBounds(){
+        return{
+            x:this.x,
+            y:0,
+            width:this.width,
+            height:this.topHeight,
+        };
+    }
+
+    isOffScreen(){
+        return this.x+this.width<0;
+    }
+}
+
+class PipeManager{
     constructor(canvas) {
-        this.canvas = canvas;
-        this.width = 68;
-        this.gap = 150;
-        this.speed = 2.6;
-        this.spawnInterval = 1450;
-        this.minTopHeight = 70;
-        this.reset();
+        this.canvas=canvas;
+        this.pipes=[];
+        this.spawnInterval=1800;
+        this.lastSpawnTime=0;
+        this.groundY = canvas.height-90;
+        this.spriteLoaded=false;
+        this.spriteSheet = new Image();
+        this.spriteSheet.onload =()=>{
+            this.spriteLoaded=true;
+        };
+        this.spriteSheet.onerror=() =>{
+            this.spriteLoaded=false;
+        };
+        this.spriteSheet.src="assets/images/flappybirdassets.png";
     }
-
     reset() {
-        this.pipes = [];
-        this.lastSpawnTime = 0;
+        this.pipes=[];
+        this.lastSpawnTime=0;
     }
-
     update(currentTime) {
-        if (currentTime - this.lastSpawnTime >= this.spawnInterval) {
-            this.spawnPipe();
+        if(currentTime - this.lastSpawnTime > this.spawnInterval) {
+            this.pipes.push(
+                new Pipe(
+                    this.canvas,
+                    this.canvas.width,
+                    this.spriteSheet,
+                    this.spriteLoaded,
+                    this.groundY
+                )
+            );
             this.lastSpawnTime = currentTime;
         }
-
-        for (const pipe of this.pipes) {
-            pipe.x -= this.speed;
-        }
-
-        this.pipes = this.pipes.filter((pipe) => pipe.x + this.width > 0);
-    }
-
-    spawnPipe() {
-        const maxTopHeight = this.canvas.height - 170 - this.gap;
-        const topHeight = this.minTopHeight + Math.random() * (maxTopHeight - this.minTopHeight);
-
-        this.pipes.push({
-            x: this.canvas.width + 20,
-            topHeight,
-            bottomY: topHeight + this.gap
+        this.pipes.forEach((pipe)=>{
+            pipe.spriteLoaded=this.spriteLoaded;
+            pipe.update();
         });
+        this.pipes=this.pipes.filter((pipe)=> !pipe.isOffScreen());
     }
 
-    draw(ctx, groundHeight) {
-        const pipeBody = "#54b948";
-        const pipeCap = "#3d8d35";
-
-        for (const pipe of this.pipes) {
-            const bottomHeight = this.canvas.height - groundHeight - pipe.bottomY;
-
-            ctx.fillStyle = pipeBody;
-            ctx.fillRect(pipe.x, 0, this.width, pipe.topHeight);
-            ctx.fillRect(pipe.x, pipe.bottomY, this.width, bottomHeight);
-
-            ctx.fillStyle = pipeCap;
-            ctx.fillRect(pipe.x - 4, pipe.topHeight - 18, this.width + 8, 18);
-            ctx.fillRect(pipe.x - 4, pipe.bottomY, this.width + 8, 18);
-        }
+    draw() {
+        this.pipes.forEach((pipe) =>pipe.draw());
     }
-
-    checkCollision(bird, groundY) {
-        const bounds = bird.getBounds();
-
-        if (bounds.top <= 0 || bounds.bottom >= groundY) {
+    checkCollision(bird,groundY=this.groundY) {
+        const birdBounds = bird.getBounds();
+        if(birdBounds.top <=0||birdBounds.bottom >=groundY){
             return true;
         }
-
         return this.pipes.some((pipe) => {
-            const overlapsX = bounds.right > pipe.x && bounds.left < pipe.x + this.width;
-            const hitsTop = bounds.top < pipe.topHeight;
-            const hitsBottom = bounds.bottom > pipe.bottomY;
-            return overlapsX && (hitsTop || hitsBottom);
+            const topBounds = pipe.getTopBounds();
+            const bottomBounds = pipe.getBottomBounds();
+            return this.checkCollision(birdBounds,topBounds) || this.checkCollision(birdBounds,bottomBounds);
         });
     }
+}
+function getRandomInt(min,max) {
+    return Math.floor(Math.floorMath.random()*(max-min+1)) + min;
+}
 
+function checkCollision(rect1,rect2){
+    return(
+        rect1.x<rect2.x+rect2.width&&
+        rect1.x+rect1.width>rect2.x&&
+        rect1.y<rect2.y+rect2.height&&
+        rect1.y+rect1.height>rect2.y
+    );
 }

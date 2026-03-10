@@ -116,6 +116,10 @@ class Bird{
   }
   getBounds(){
     return{
+      x:this.x+8,
+      y:this.y+8,
+      width:this.width-16,
+      height:this.height-16,
       left:this.x+8,
       right:this.x+this.width-8,
       top:this.y+8,
@@ -123,3 +127,4 @@ class Bird{
     };
   }
 }
+

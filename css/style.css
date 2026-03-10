@@ -9,47 +9,124 @@ html,body{
     height:100%;
     overflow:hidden;
 }
-
 body{
     display:flex;
     justify-content:center;
     align-items:center;
     background:#000;
-    font-family:"Segoe UI",Tahoma,geneva,Verdana,sans-serif;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:transparent;
-    user-select:none;
+    font-family:"Segoe UI",'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
+
 .game-container,
 #gameCanvas{
-    touch-action:none;
-    -webkit-touch-callout:none;
+    touch-action: none;
+    -webkit-touch-callout: none;
 }
 
 .game-container{
-    position:relative;
-    width:min(100vw,400px);
-    height:min(100vh,600px);
-    aspect-ratio:2/3;
+    position: relative;
+    width: 400px;
+    height: 600px;
+    border-radius:0;
     overflow:hidden;
+    box-shadow: none;
+    background: #70c5ce;
+}
+#gameCanvas{
+    position:relative;
+    width:400px;
+    height:600px;
+    border-radius:0;
+    overflow:hidden;
+    box-shadow:none;
     background:#70c5ce;
 }
-
-#gameCanvas{
+#gamecanvas{
     display:block;
     width:100%;
     height:100%;
-    background:linear-gradient(180deg,#4ec0ca 0%,#70c5ce 100%);
+    background:linear-gradient(180deg,#4ec0ca 0%,#4ec0ca 100%);
     image-rendering:pixelated;
     image-rendering:crisp-edges;
     -webkit-image-rendering:pixelated;
     -moz-image-rendering:crisp-edges;
 }
+[class *="sprite"],
+.power-btn,
+.shield-btn{
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    -webkit-image-rendering:pixelated;
+}
+
+.screen{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    display:flex;
+    height:100%;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:#fff;
+    text-align:center;
+}
+
+.hidden{
+    display:none !important;
+}
+
+.top-pipe-sprite{
+    background:url('../assets/images/flappybirdassets.png') no-repeat -320px 0;
+    width:26px;
+    height:135px;
+}
+
+.bottom-pipe-sprite{
+    background:url('../assets/images/flappybirdassets.png') no-repeat -330px 0;
+    width:26px;
+    height:121px;
+}
 
 @media screen and (max-width:480px) {
+    html,body{
+        width:100% !important;
+        height:100% !important;
+        min-height:100vh !important;
+        min-height:100dvh !important;
+        overflow:hidden !important;
+        background:#4ec0ca !important;
+    }
+
+    body{
+        align-items:stretch;
+        justify-content:center;
+    }
+
     .game-container{
-        width:100vw;
-        height:100vh;
-        height:100dvh;
+        position:fixed !important;
+        top:0 !important;
+        left:0 !important;
+        right:0 !important;
+        bottom:0 !important;
+        width:100vw !important;
+        height:100vh !important;
+        height:100dvh !important;
+        border-radius:0 !important;
+        box-shadow:none !important;
+    }
+
+    #gameCanvas{
+        position:absolute !important;
+        top:0 !important;
+        left:0 !important;
+        width:100% !important;
+        height:100% !important;
+        display:block;
     }
 }
