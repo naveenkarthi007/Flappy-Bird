@@ -13,6 +13,9 @@ class Bird {
     this.spriteSheet.onload = () => {
       this.spriteLoaded = true;
     };
+    this.spriteSheet.onerror = () => {
+      this.spriteLoaded = false;
+    };
     this.spriteSheet.src = "assets/images/flappybirdassets.png";
     this.frames = [
       { x: 223, y: 124, width: 17, height: 12 },
@@ -76,7 +79,7 @@ class Bird {
             this.height
         );
     } else {
-        this.drawFallbackbird(ctx);
+          this.drawFallbackBird(ctx);
     }
     ctx.restore();
   }
@@ -95,15 +98,15 @@ class Bird {
     ctx.beginPath();
     ctx.arc(10,-6,3,0,Math.PI * 2);
     ctx.fill();
-    ctx.fillstyle="#ff7f11";
+    ctx.fillStyle="#ff7f11";
     ctx.beginPath();
-    ctx.moveTo(14.0);
+    ctx.moveTo(14,0);
     ctx.lineTo(26,5);
     ctx.lineTo(14,10);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = "#f39c12";
-    ctx.beignPath();
+    ctx.beginPath();
     ctx.ellipse(-6,3,10,7,-0.4,0,Math.PI * 2);
     ctx.fill();
   }

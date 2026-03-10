@@ -11,13 +11,12 @@ class Game {
         this.bird = new Bird(this.canvas);
         this.pipeManager = new PipeManager(this.canvas);
 
-        this.state = "playing";
+        this.state = "ready";
         this.lastTime = 0;
 
         this.resizeCanvas();
         this.bindEvents();
         this.resetRound();
-        this.bird.flap();
 
         requestAnimationFrame((time) => this.gameLoop(time));
     }
@@ -58,13 +57,16 @@ class Game {
     }
 
     startGame() {
-        this.resetRound();
-        this.state = "playing";
+        if (this.state === "ready") {
+            this.state = "playing";
+        }
+
         this.bird.flap();
     }
 
     restartGame() {
-        this.startGame();
+        this.resetRound();
+        this.state = "ready";
     }
 
     resetRound() {
@@ -79,50 +81,118 @@ class Game {
             return;
         }
 
-        if (this.state === "playing") {
-            this.bird.flap();
-        }
+        this.startGame();
     }
 
-    update(deltaTime, currentTime){
+    update(deltaTime, currentTime) {
         const running = this.state === "playing";
+
         this.bird.update(deltaTime, running);
 
-        if(!running){
+        if (!running) {
             return;
         }
 
-        this.pipeManager.checkCollision(this.bird, this.baseGroundY);
+        this.pipeManager.update(currentTime);
 
-        if(this.pipeManager.checkCollision(this.bird,this.baseGroundY)){
-            this.endgame();
+        if (this.pipeManager.checkCollision(this.bird, this.baseGroundY)) {
+            this.endGame();
         }
     }
 
-    endGame(){
+    endGame() {
         this.state = "game-over";
     }
 
-    drawBackground(){
+    drawBackground() {
         const ctx = this.ctx;
-        const skyGradient = ctx.createLinearGradinet(0,0,0, this.canvas.height);
-        skyGradient.addColorStop(0,"#7ed7f7");
-        skyGradient.addColorStop(0.7,"#d5f3ff");
-        skyGradient.addColorStop(1,"#f8e8ac");
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        skyGradient.addColorStop(0, "#7ed7f7");
+        skyGradient.addColorStop(0.7, "#d5f3ff");
+        skyGradient.addColorStop(1, "#f8e8ac");
 
         ctx.fillStyle = skyGradient;
-        ctx.fillRect(0,0, this.canvas.width,this.canvas.height);
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
         ctx.beginPath();
-        ctx.arc(80,110,28,0,Math>pi * 2);
+        ctx.arc(80, 110, 28, 0, Math.PI * 2);
         ctx.arc(104, 100, 22, 0, Math.PI * 2);
-        ctx.arc(128,112,26,0,Math.PI * 2);
+        ctx.arc(128, 112, 26, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.arc(270, 150, 24, 0 , Math.PI * 2);
-        ctx.arc(292,140,18,0,Math.PI *2);
-        ctx.a
+        ctx.arc(270, 150, 24, 0, Math.PI * 2);
+        ctx.arc(292, 140, 18, 0, Math.PI * 2);
+        ctx.arc(314, 152, 22, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    drawGround() {
+        const ctx = this.ctx;
+
+        ctx.fillStyle = "#ded895";
+        ctx.fillRect(0, this.baseGroundY, this.canvas.width, this.groundHeight);
+
+        ctx.fillStyle = "#b6d96c";
+        ctx.fillRect(0, this.baseGroundY, this.canvas.width, 18);
+
+        ctx.strokeStyle = "#9b8f48";
+        ctx.lineWidth = 2;
+
+        for (let x = 0; x < this.canvas.width; x += 24) {
+            ctx.beginPath();
+            ctx.moveTo(x, this.baseGroundY + 18);
+            ctx.lineTo(x + 12, this.baseGroundY + this.groundHeight);
+            ctx.stroke();
+        }
+    }
+
+    drawHud() {
+        const ctx = this.ctx;
+
+        if (this.state === "ready") {
+            ctx.fillStyle = "rgba(22, 50, 79, 0.82)";
+            ctx.fillRect(36, 40, this.canvas.width - 72, 72);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 24px Segoe UI";
+            ctx.textAlign = "center";
+            ctx.fillText("Tap to Fly", this.canvas.width / 2, 70);
+            ctx.font = "16px Segoe UI";
+            ctx.fillText("Press Space or click", this.canvas.width / 2, 95);
+        }
+
+        if (this.state === "game-over") {
+            ctx.fillStyle = "rgba(22, 50, 79, 0.85)";
+            ctx.fillRect(55, 210, this.canvas.width - 110, 110);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 28px Segoe UI";
+            ctx.textAlign = "center";
+            ctx.fillText("Game Over", this.canvas.width / 2, 252);
+            ctx.font = "16px Segoe UI";
+            ctx.fillText("Tap to restart", this.canvas.width / 2, 285);
+        }
+    }
+
+    draw() {
+        this.drawBackground();
+        this.pipeManager.draw(this.ctx, this.groundHeight);
+        this.drawGround();
+        this.bird.draw();
+        this.drawHud();
+    }
+
+    gameLoop(currentTime) {
+        const deltaTime = this.lastTime === 0 ? 16.67 : currentTime - this.lastTime;
+        this.lastTime = currentTime;
+
+        this.update(deltaTime, currentTime);
+        this.draw();
+
+        requestAnimationFrame((time) => this.gameLoop(time));
     }
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+    new Game();
+});
