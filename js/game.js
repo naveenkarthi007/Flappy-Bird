@@ -2,6 +2,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById("gameCanvas");
         this.ctx = this.canvas.getContext("2d");
+        this.ctx.imageSmoothingEnabled = false;
 
         this.canvas.width = 400;
         this.canvas.height = 600;
@@ -152,7 +153,7 @@ class Game {
         const ctx = this.ctx;
 
         if (this.state === "ready") {
-            ctx.fillStyle = "rgba(22, 50, 79, 0.82)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
             ctx.fillRect(36, 40, this.canvas.width - 72, 72);
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 24px Segoe UI";
