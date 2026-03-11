@@ -42,7 +42,15 @@ class Game {
         this.pipeManager = new PipeManager(this.canvas);
         this.pipeManager.groundY = this.baseGroundY;
 
-        this.state = "ready";
+        this.startScreen = document.getElementById("startScreen");
+        this.shopScreen = document.getElementById("shopScreen");
+        this.gameOverScreen = document.getElementById("gameOverScreen");
+        this.startBtn = document.getElementById("startBtn");
+        this.shopBtn = document.getElementById("shopBtn");
+        this.closeShopBtn = document.getElementById("closeShopBtn");
+        this.restartBtn = document.getElementById("restartBtn");
+
+        this.state = "start";
         this.lastTime = 0;
 
         this.resizeCanvas();
@@ -67,6 +75,38 @@ class Game {
             trigger();
         });
 
+        if (this.startBtn) {
+            this.startBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.startFromMenu();
+            });
+        }
+
+        if (this.shopBtn) {
+            this.shopBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.openShop();
+            });
+        }
+
+        if (this.closeShopBtn) {
+            this.closeShopBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeShop();
+            });
+        }
+
+        if (this.restartBtn) {
+            this.restartBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.restartGame();
+            });
+        }
+
         window.addEventListener("resize", () => this.resizeCanvas());
     }
 
@@ -88,16 +128,32 @@ class Game {
     }
 
     startGame() {
+        if (this.state === "start") {
+            this.startFromMenu();
+            return;
+        }
+
         if (this.state === "ready") {
             this.state = "playing";
+            this.hideOverlays();
         }
 
         this.bird.flap();
     }
 
+    startFromMenu() {
+        this.closeShop();
+        this.hideGameOverScreen();
+        this.hideStartScreen();
+        this.state = "ready";
+    }
+
     restartGame() {
         this.resetRound();
-        this.state = "ready";
+        this.state = "start";
+        this.hideGameOverScreen();
+        this.closeShop();
+        this.showStartScreen();
     }
 
     resetRound() {
@@ -109,6 +165,10 @@ class Game {
     }
 
     handleInput() {
+        if (!this.shopScreen.classList.contains("hidden")) {
+            return;
+        }
+
         if (this.state === "game-over") {
             this.restartGame();
             return;
@@ -138,6 +198,49 @@ class Game {
 
     endGame() {
         this.state = "game-over";
+        this.showGameOverScreen();
+    }
+
+    openShop() {
+        if (this.shopScreen) {
+            this.shopScreen.classList.remove("hidden");
+        }
+    }
+
+    closeShop() {
+        if (this.shopScreen) {
+            this.shopScreen.classList.add("hidden");
+        }
+    }
+
+    showStartScreen() {
+        if (this.startScreen) {
+            this.startScreen.classList.remove("hidden");
+        }
+    }
+
+    hideStartScreen() {
+        if (this.startScreen) {
+            this.startScreen.classList.add("hidden");
+        }
+    }
+
+    showGameOverScreen() {
+        if (this.gameOverScreen) {
+            this.gameOverScreen.classList.remove("hidden");
+        }
+    }
+
+    hideGameOverScreen() {
+        if (this.gameOverScreen) {
+            this.gameOverScreen.classList.add("hidden");
+        }
+    }
+
+    hideOverlays() {
+        this.hideStartScreen();
+        this.hideGameOverScreen();
+        this.closeShop();
     }
 
     drawBackground() {
@@ -260,16 +363,6 @@ class Game {
             ctx.fillText("Press Tab, Space or click", this.canvas.width / 2, 95);
         }
 
-        if (this.state === "game-over") {
-            ctx.fillStyle = "rgba(22, 50, 79, 0.85)";
-            ctx.fillRect(55, 210, this.canvas.width - 110, 110);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 28px Segoe UI";
-            ctx.textAlign = "center";
-            ctx.fillText("Game Over", this.canvas.width / 2, 252);
-            ctx.font = "16px Segoe UI";
-            ctx.fillText("Tap to restart", this.canvas.width / 2, 285);
-        }
     }
 
     draw() {
