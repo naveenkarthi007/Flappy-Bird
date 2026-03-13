@@ -1,389 +1,1014 @@
 class Game {
-    constructor() {
-        this.canvas = document.getElementById("gameCanvas");
-        this.ctx = this.canvas.getContext("2d");
-        this.ctx.imageSmoothingEnabled = false;
+  constructor() {
+    this.canvas = document.getElementById("gameCanvas");
+    this.ctx = this.canvas.getContext("2d");
 
-        this.canvas.width = 400;
-        this.canvas.height = 600;
-        this.groundHeight = 80;
-        this.baseGroundY = this.canvas.height - this.groundHeight;
-        this.sceneSpriteLoaded = false;
-        this.sceneSpriteSheet = new Image();
-        this.sceneSpriteSheet.onload = () => {
-            this.sceneSpriteLoaded = true;
-        };
-        this.sceneSpriteSheet.onerror = () => {
-            this.sceneSpriteLoaded = false;
-        };
-        this.sceneSpriteSheet.src = "assets/images/flappybirdassets.png";
-        this.sceneSprites = {
-            background: {
-                x: 0,
-                y: 0,
-                width: 144,
-                height: 256,
-                cropY: 60,
-                cropHeight: 150,
-            },
-            ground: {
-                x: 146,
-                y: 0,
-                width: 154,
-                height: 56,
-            },
-        };
-        this.bgX = 0;
-        this.bgSpeed = 0.3;
-        this.groundX = 0;
-        this.groundSpeed = 1.5;
+    this.ctx.imageSmoothingEnabled = false;
+    this.ctx.webkitImageSmoothingEnabled = false;
+    this.ctx.mozImageSmoothingEnabled = false;
+    this.ctx.msImageSmoothingEnabled = false;
 
-        this.bird = new Bird(this.canvas);
-        this.pipeManager = new PipeManager(this.canvas);
-        this.pipeManager.groundY = this.baseGroundY;
+    this.canvas.width = 400;
+    this.canvas.height = 600;
+    this.resizeCanvas();
+    this.spriteLoaded = false;
 
-        this.startScreen = document.getElementById("startScreen");
-        this.shopScreen = document.getElementById("shopScreen");
-        this.gameOverScreen = document.getElementById("gameOverScreen");
-        this.startBtn = document.getElementById("startBtn");
-        this.shopBtn = document.getElementById("shopBtn");
-        this.closeShopBtn = document.getElementById("closeShopBtn");
-        this.restartBtn = document.getElementById("restartBtn");
+    this.sounds = {
+      flap: new Audio('assets/sounds/flap.mp3'),
+      point: new Audio('assets/sounds/point.mp3'),
+      hit: new Audio('assets/sounds/flappy-bird-hit-sound.mp3'),
+      die: new Audio('assets/sounds/die.mp3'),
+      swoosh: new Audio('assets/sounds/swoosh.mp3'),
+      blast: new Audio('assets/sounds/blast.mp3'),
+    };
 
-        this.state = "start";
-        this.lastTime = 0;
+    this.sounds.flap.volume = 0.4;
+    this.sounds.point.volume = 0.5;
+    this.sounds.hit.volume = 0.5;
+    this.sounds.die.volume = 0.5;
+    this.sounds.swoosh.volume = 0.4;
+    this.sounds.blast.volume = 0.6;
 
-        this.resizeCanvas();
-        this.bindEvents();
-        this.resetRound();
+    this.music = new Audio('assets/sounds/MainTheme.mp3');
+    this.music.loop = true;
+    this.music.volume = 0.3;
 
-        requestAnimationFrame((time) => this.gameLoop(time));
-    }
+    this.spriteSheet = new Image();
+    this.spriteSheet.onload = () => {
+      this.spriteLoaded = true;
+    };
+    this.spriteSheet.onerror = () => {
+      console.error("Failed to load sprite sheet");
+    };
+    this.spriteSheet.src = "assets/images/flappybirdassets.png";
 
-    bindEvents() {
-        const trigger = () => this.handleInput();
+    this.backgroundSprite = {
+      x: 0,
+      y: 0,
+      width: 144,
+      height: 256,
+    };
 
-        window.addEventListener("keydown", (event) => {
-            if (event.code === "Space" || event.code === "ArrowUp" || event.code === "Tab") {
-                event.preventDefault();
-                trigger();
-            }
-        });
+    this.bgX = 0;
+    this.bgSpeed = 0.3;
 
-        this.canvas.addEventListener("pointerdown", (event) => {
-            event.preventDefault();
-            trigger();
-        });
+    this.bird = new Bird(this.canvas);
+    this.pipeManager = new PipeManager(this.canvas);
 
-        if (this.startBtn) {
-            this.startBtn.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.startFromMenu();
-            });
-        }
+    this.gameState = "start";
+    this.showSettings = false;
+    this.isPaused = false;
+    this.firstInputReceived = false;
+    this.score = 0;
+    this.highScore = getHighScore();
 
-        if (this.shopBtn) {
-            this.shopBtn.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.openShop();
-            });
-        }
+    this.gameOverTimeoutId = null;
 
-        if (this.closeShopBtn) {
-            this.closeShopBtn.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.closeShop();
-            });
-        }
+    this.playerCoins = this.loadPlayerCoins();
+    this.ownedItems = this.loadOwnedItems();
 
-        if (this.restartBtn) {
-            this.restartBtn.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.restartGame();
-            });
-        }
+    this.shopPrices = {
+      shield: 20,
+      power: 15,
+      antibomb: 10
+    };
 
-        window.addEventListener("resize", () => this.resizeCanvas());
-    }
+    this.screenShake = {
+      intensity: 0,
+      duration: 0,
+      startTime: 0
+    };
 
-    resizeCanvas() {
-        const maxWidth = Math.min(window.innerWidth - 32, 420);
-        const maxHeight = window.innerHeight - 32;
-        const aspect = this.canvas.width / this.canvas.height;
+    this.groundY = this.canvas.height - 80;
+    this.groundX = 0;
 
-        let displayWidth = maxWidth;
-        let displayHeight = displayWidth / aspect;
+    this.resizeCanvas();
 
-        if (displayHeight > maxHeight) {
-            displayHeight = maxHeight;
-            displayWidth = displayHeight * aspect;
-        }
+    this.bindEvents();
 
-        this.canvas.style.width = `${Math.max(displayWidth, 260)}px`;
-        this.canvas.style.height = `${Math.max(displayHeight, 390)}px`;
-    }
+    coinSystem.init("coinDisplay");
 
-    startGame() {
-        if (this.state === "start") {
-            this.startFromMenu();
+    this.numberSprites = [
+      { x: 288, y: 100, w: 7, h: 10 },
+      { x: 291, y: 118, w: 5, h: 10 },
+      { x: 289, y: 134, w: 7, h: 10 },
+      { x: 289, y: 150, w: 7, h: 10 },
+      { x: 287, y: 173, w: 7, h: 10 },
+      { x: 287, y: 185, w: 7, h: 10 },
+      { x: 165, y: 245, w: 7, h: 10 },
+      { x: 175, y: 245, w: 7, h: 10 },
+      { x: 185, y: 245, w: 7, h: 10 },
+      { x: 195, y: 245, w: 7, h: 10 }
+    ];
+
+    this.inGameScoreElement = document.getElementById("inGameScore");
+    coinSystem.reset();
+
+    shieldSystem.init(this.bird, this.canvas);
+    rocketSystem.init(this.bird, this.canvas);
+    gravitySystem.init(this.canvas);
+    gravitySystem.setGroundY(this.groundY);
+    powerUpSystem.init(this.bird, this.canvas);
+    portalSystem.init(this.bird, this.canvas);
+    spaceWorldSystem.init(this.bird, this.canvas, (amount) => this.addCoins(amount));
+
+    this.lastTime = null;
+    this.simulatedTime = 0;
+    this.accumulator = 0;
+
+    this.spaceKeyHeld = false;
+    this.lastInputTime = 0;
+
+    requestAnimationFrame((t) => this.gameLoop(t));
+  }
+
+  bindEvents() {
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        if (e.repeat || this.spaceKeyHeld) return;
+        this.spaceKeyHeld = true;
+        e.preventDefault();
+        this.handleInput();
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        this.spaceKeyHeld = false;
+      }
+    });
+
+    this.canvas.addEventListener("click", () => this.handleInput());
+
+    this.canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      this.handleInput();
+    }, { passive: false });
+
+    const container = document.querySelector('.game-container');
+    if (container) {
+      const shouldIgnoreTarget = (target) => {
+        if (!(target instanceof Element)) return false;
+
+        const shopScreen = document.getElementById('shopScreen');
+        if (shopScreen && !shopScreen.classList.contains('hidden')) return true;
+
+        return !!target.closest(
+          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, .shop-item-card, .shop-item'
+        );
+      };
+
+      container.addEventListener(
+        'pointerdown',
+        (e) => {
+          if (e.pointerType === 'mouse' && typeof e.button === 'number' && e.button !== 0) {
             return;
-        }
+          }
 
-        if (this.state === "ready") {
-            this.state = "playing";
-            this.hideOverlays();
-        }
+          if (shouldIgnoreTarget(e.target)) return;
+          e.preventDefault();
+          this.handleInput();
+        },
+        { capture: true, passive: false },
+      );
 
+      container.addEventListener(
+        'touchstart',
+        (e) => {
+          if (shouldIgnoreTarget(e.target)) return;
+          e.preventDefault();
+          this.handleInput();
+        },
+        { capture: true, passive: false },
+      );
+    }
+
+    window.addEventListener("resize", () => this.resizeCanvas());
+    window.addEventListener("orientationchange", () => {
+      setTimeout(() => this.resizeCanvas(), 100);
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", () => this.resizeCanvas());
+    }
+
+    document.body.addEventListener("touchmove", (e) => {
+      if (e.target.closest('.game-container')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+
+    const startBtn = document.getElementById("startBtn");
+    if (startBtn) {
+      startBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.handleInput();
+      });
+      startBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleInput();
+      }, { passive: false });
+    }
+
+    const shopBtn = document.getElementById("shopBtn");
+    if (shopBtn) {
+      shopBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.openShop();
+      });
+      shopBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.openShop();
+      }, { passive: false });
+    }
+
+    const closeShopBtn = document.getElementById("closeShopBtn");
+    if (closeShopBtn) {
+      closeShopBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closeShop();
+      });
+      closeShopBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeShop();
+      }, { passive: false });
+    }
+
+    this.setupShopItems();
+  }
+
+  handleInput() {
+    const now = performance.now();
+    if (now - this.lastInputTime < 80) return;
+    this.lastInputTime = now;
+
+    if (this.showSettings) {
+      this.showSettings = false;
+      return;
+    }
+
+    if (this.gameState === "gameOver" || this.gameState === "dying" || this.gameState === "blasting") {
+      return;
+    }
+
+    if (this.isPaused) {
+      return;
+    }
+
+    if (this.gameState === "start") {
+      this.startGame();
+    } else if (this.gameState === "ready") {
+      this.beginRun();
+    } else if (this.gameState === "playing") {
+      if (portalSystem.isSuckingIn && portalSystem.isSuckingIn()) {
+        return;
+      }
+      this.firstInputReceived = true;
+
+      if (portalSystem.isAutopilotActive && portalSystem.isAutopilotActive()) {
+        portalSystem.breakAutopilot();
+      }
+
+      if (!spaceWorldSystem.isActive) {
         this.bird.flap();
+        this.playSound('flap');
+      }
+    }
+  }
+
+  toggleSettings() {
+    this.showSettings = !this.showSettings;
+  }
+
+  playSound(name) {
+    const sound = this.sounds[name];
+    if (!sound) return;
+    try {
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  loadPlayerCoins() {
+    const saved = localStorage.getItem('flappybird_coins');
+    return saved ? parseInt(saved, 10) : 0;
+  }
+
+  savePlayerCoins() {
+    if (this.coinSaveTimeout) {
+      clearTimeout(this.coinSaveTimeout);
     }
 
-    startFromMenu() {
-        this.closeShop();
-        this.hideGameOverScreen();
-        this.hideStartScreen();
-        this.state = "ready";
+    this.coinSaveTimeout = setTimeout(() => {
+      localStorage.setItem('flappybird_coins', this.playerCoins.toString());
+    }, 500);
+  }
+
+  forceSaveCoins() {
+    if (this.coinSaveTimeout) {
+      clearTimeout(this.coinSaveTimeout);
+    }
+    localStorage.setItem('flappybird_coins', this.playerCoins.toString());
+  }
+
+  loadOwnedItems() {
+    const saved = localStorage.getItem('flappybird_owned');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      for (const key in parsed) {
+        if (parsed[key] === true) parsed[key] = 1;
+      }
+      return parsed;
+    }
+    return { shield: 0, power: 0, antibomb: 0 };
+  }
+
+  saveOwnedItems() {
+    localStorage.setItem('flappybird_owned', JSON.stringify(this.ownedItems));
+  }
+
+  addCoins(amount) {
+    this.playerCoins += amount;
+    this.savePlayerCoins();
+    this.updateInGameCoins();
+  }
+
+  openShop() {
+    const shopScreen = document.getElementById("shopScreen");
+    if (shopScreen) {
+      shopScreen.classList.remove("hidden");
+      this.updateShopDisplay();
+    }
+  }
+
+  updateShopDisplay() {
+    const coinsAmount = document.getElementById("shopCoinsAmount");
+    if (coinsAmount) {
+      coinsAmount.textContent = this.playerCoins;
     }
 
-    restartGame() {
-        this.resetRound();
-        this.state = "start";
-        this.hideGameOverScreen();
-        this.closeShop();
-        this.showStartScreen();
+    const shopItems = document.querySelectorAll('.shop-item[data-item]');
+    shopItems.forEach(item => {
+      const itemName = item.getAttribute('data-item');
+      const qty = this.ownedItems[itemName] || 0;
+
+      const card = item.closest('.shop-item-card');
+      if (!card) return;
+      let badge = card.querySelector('.qty-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'qty-badge';
+        card.appendChild(badge);
+      }
+      badge.textContent = qty;
+      badge.style.display = qty > 0 ? '' : 'none';
+    });
+  }
+
+  closeShop() {
+    const shopScreen = document.getElementById("shopScreen");
+    if (shopScreen) {
+      shopScreen.classList.add("hidden");
     }
 
-    resetRound() {
-        this.bird.reset();
-        this.pipeManager.reset();
+    const message = document.getElementById("shopMessage");
+    if (message) message.classList.add("hidden");
+  }
+
+  purchaseItem(itemName, price) {
+    if (this.playerCoins < price) {
+      this.showShopMessage("Not enough coins!", "error");
+      return false;
+    }
+
+    this.playerCoins -= price;
+    if (!this.ownedItems[itemName]) this.ownedItems[itemName] = 0;
+    this.ownedItems[itemName]++;
+    this.playSound('swoosh');
+    this.savePlayerCoins();
+    this.saveOwnedItems();
+    this.updateShopDisplay();
+    this.updatePowerQuantities();
+    this.updateShieldButton();
+    this.showShopMessage("Purchased! (x" + this.ownedItems[itemName] + ")", "success");
+    return true;
+  }
+
+  showShopMessage(text, type) {
+    const message = document.getElementById("shopMessage");
+    if (message) {
+      message.textContent = text;
+      message.className = "shop-message " + type;
+
+      message.style.animation = 'none';
+      message.offsetHeight;
+      message.style.animation = null;
+
+      setTimeout(() => {
+        message.classList.add("hidden");
+      }, 2000);
+    }
+  }
+
+  setupShopItems() {
+    const shopCards = document.querySelectorAll('.shop-item-card');
+    shopCards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        const item = card.querySelector('.shop-item[data-item]');
+        if (!item) return;
+        const itemName = item.getAttribute('data-item');
+        const price = parseInt(item.getAttribute('data-price'), 10);
+        this.purchaseItem(itemName, price);
+      });
+    });
+  }
+
+
+  resizeCanvas() {
+    const container = document.querySelector('.game-container');
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
+    const BASE_W = 400;
+    const BASE_H = 600;
+    const gameAspect = BASE_W / BASE_H;
+    let displayWidth, displayHeight;
+
+    if (vw <= 480) {
+      displayWidth = vw;
+      displayHeight = vh;
+
+      const displayAspect = displayWidth / displayHeight;
+      const newInternalH = Math.round(BASE_W / displayAspect);
+
+      if (this.canvas.width !== BASE_W || this.canvas.height !== newInternalH) {
+        this.canvas.width = BASE_W;
+        this.canvas.height = newInternalH;
+
+        this.groundY = this.canvas.height - 80;
+
+        if (typeof gravitySystem !== 'undefined' && gravitySystem && gravitySystem.setGroundY) {
+          gravitySystem.setGroundY(this.groundY);
+        }
+      }
+
+      if (this.bird) {
+        const birdYFactor = 0.35;
+
+        this.bird.baseY = this.canvas.height * birdYFactor;
+        if (this.gameState === 'start') {
+          this.bird.y = this.canvas.height * birdYFactor;
+        }
+      }
+
+      if (container) {
+        container.style.width = '';
+        container.style.height = '';
+      }
+      this.canvas.style.width = '';
+      this.canvas.style.height = '';
+    } else {
+      displayHeight = vh;
+      displayWidth = displayHeight * gameAspect;
+      if (displayWidth > vw) {
+        displayWidth = vw;
+        displayHeight = displayWidth / gameAspect;
+      }
+
+      if (this.canvas.width !== BASE_W || this.canvas.height !== BASE_H) {
+        this.canvas.width = BASE_W;
+        this.canvas.height = BASE_H;
+        this.groundY = this.canvas.height - 80;
+        if (this.bird) {
+          this.bird.baseY = this.canvas.height / 3.2;
+        }
+        if (typeof gravitySystem !== 'undefined' && gravitySystem && gravitySystem.setGroundY) {
+          gravitySystem.setGroundY(this.groundY);
+        }
+      }
+
+      if (container) {
+        container.style.width = displayWidth + 'px';
+        container.style.height = displayHeight + 'px';
+      }
+      this.canvas.style.width = displayWidth + 'px';
+      this.canvas.style.height = displayHeight + 'px';
+    }
+
+    this.ctx.imageSmoothingEnabled = false;
+    this.ctx.webkitImageSmoothingEnabled = false;
+    this.ctx.mozImageSmoothingEnabled = false;
+    this.ctx.msImageSmoothingEnabled = false;
+  }
+
+
+  startGame() {
+    this.clearGameOverTimeout();
+    this.gameState = "ready";
+    this.firstInputReceived = false;
+    this.isPaused = false;
+    this.pipeManager.reset();
+    this.playSound('swoosh');
+
+    this.resizeCanvas();
+
+    const startScreen = document.getElementById("startScreen");
+    if (startScreen) startScreen.classList.add("hidden");
+
+    const getReadyScreen = document.getElementById("getReadyScreen");
+    if (getReadyScreen) getReadyScreen.classList.remove("hidden");
+
+    this.music.currentTime = 0;
+    this.music.play().catch(() => {});
+
+    if (this.inGameScoreElement) {
+      this.inGameScoreElement.classList.add("hidden");
+      this.updateInGameScore();
+    }
+  }
+
+  beginRun() {
+    this.gameState = "playing";
+    this.firstInputReceived = true;
+
+    const getReadyScreen = document.getElementById("getReadyScreen");
+    if (getReadyScreen) getReadyScreen.classList.add("hidden");
+
+    if (this.inGameScoreElement) {
+      this.inGameScoreElement.classList.remove("hidden");
+      this.updateInGameScore();
+    }
+
+    this.bird.flap();
+    this.playSound('flap');
+  }
+
+  gameOver() {
+    if (this.gameState !== "dying" && this.gameState !== "blasting") {
+      this.gameState = "dying";
+      this.bird.die();
+      this.isPaused = false;
+      this.playSound('hit');
+      this.music.pause();
+
+      setTimeout(() => this.playSound('die'), 300);
+
+      this.screenShake = {
+        intensity: 8,
+        duration: 300,
+        startTime: Date.now()
+      };
+
+      powerUpSystem.deactivate();
+      this.pipeManager.updateSpeed(1.5);
+    }
+  }
+
+  gameOverByRocket() {
+    if (this.gameState !== "dying" && this.gameState !== "blasting") {
+      this.gameState = "blasting";
+      this.bird.dieByRocket();
+      this.isPaused = false;
+      this.playSound('blast');
+      this.music.pause();
+
+      setTimeout(() => this.playSound('die'), 400);
+
+      this.screenShake = {
+        intensity: 15,
+        duration: 400,
+        startTime: Date.now()
+      };
+
+      powerUpSystem.deactivate();
+      this.pipeManager.updateSpeed(1.5);
+    }
+  }
+
+  showGameOverScreen() {
+    this.gameState = "gameOver";
+
+    this.forceSaveCoins();
+
+    if (this.score > this.highScore) {
+      this.highScore = this.score;
+      saveHighScore(this.score);
+    }
+
+    if (this.inGameScoreElement) {
+      this.inGameScoreElement.classList.add("hidden");
+    }
+
+    // Auto-restart after a short delay
+    this.gameOverTimeoutId = setTimeout(() => this.returnToHome(), 2000);
+  }
+
+  generateSpriteNumberHTML(num) {
+    const digits = String(num).split('');
+    return digits.map(d => {
+      const digit = parseInt(d, 10);
+      return '<span class="num-digit num-' + digit + '"></span>';
+    }).join('');
+  }
+
+  updateSpriteScore(elementId, score) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.innerHTML = this.generateSpriteNumberHTML(score);
+    }
+  }
+
+  updateInGameScore() {
+    if (this.inGameScoreElement) {
+      this.inGameScoreElement.innerHTML = this.generateSpriteNumberHTML(this.score);
+    }
+  }
+
+  clearGameOverTimeout() {
+    if (this.gameOverTimeoutId != null) {
+      clearTimeout(this.gameOverTimeoutId);
+      this.gameOverTimeoutId = null;
+    }
+  }
+
+  returnToHome() {
+    this.clearGameOverTimeout();
+
+    this.score = 0;
+    this.firstInputReceived = false;
+    this.isPaused = false;
+    this.bird.reset();
+    this.pipeManager.reset();
+    this.bgX = 0;
+    this.groundX = 0;
+
+    this.screenShake = { intensity: 0, duration: 0, startTime: 0 };
+
+    coinSystem.reset();
+    powerUpSystem.reset();
+    this.pipeManager.updateSpeed(1.5);
+    shieldSystem.reset();
+    rocketSystem.reset();
+    gravitySystem.reset();
+    portalSystem.reset();
+    spaceWorldSystem.reset();
+
+    this.gameState = "start";
+
+    this.resizeCanvas();
+
+    if (this.inGameScoreElement) {
+      this.inGameScoreElement.classList.add("hidden");
+    }
+
+    const getReadyScreen = document.getElementById("getReadyScreen");
+    if (getReadyScreen) getReadyScreen.classList.add("hidden");
+
+    const startScreen = document.getElementById("startScreen");
+    if (startScreen) startScreen.classList.remove("hidden");
+  }
+
+  updateStartScreenCoins() {
+    // no-op: coins removed from start screen
+  }
+
+  update(currentTime) {
+    if (this.gameState === "playing" && !this.isPaused) {
+      this.bgX -= this.bgSpeed;
+      if (this.bgX <= -this.backgroundSprite.width) {
         this.bgX = 0;
-        this.groundX = 0;
-        this.lastTime = 0;
+      }
     }
 
-    handleInput() {
-        if (!this.shopScreen.classList.contains("hidden")) {
-            return;
+    if (this.gameState === "start" || this.gameState === "ready") {
+      this.bird.updateAutoFly(currentTime);
+    } else if (this.gameState === "playing" && !this.isPaused) {
+      if (!this.firstInputReceived) {
+        this.bird.updateAutoFly(currentTime);
+      } else {
+        if (portalSystem.isInNewWorld() && spaceWorldSystem.isActive) {
+          this.bird.updateAnimation(currentTime);
+          spaceWorldSystem.update(currentTime);
+        } else if (portalSystem.isAutopilotActive && portalSystem.isAutopilotActive()) {
+          this.bird.updateAnimation(currentTime);
+        } else {
+          this.bird.update(currentTime);
+
+          if (portalSystem.isInNewWorld() && !spaceWorldSystem.isActive) {
+            spaceWorldSystem.activate();
+          }
         }
 
-        if (this.state === "game-over") {
-            this.restartGame();
-            return;
+        if (!portalSystem.isInNewWorld() && spaceWorldSystem.isActive) {
+          spaceWorldSystem.deactivate();
         }
+      }
 
-        this.startGame();
-    }
-
-    update(deltaTime, currentTime) {
-        const running = this.state === "playing";
-
-        this.bird.update(deltaTime, running);
-
-        if (!running) {
-            return;
-        }
-
-        this.bgX -= this.bgSpeed;
-        this.groundX -= this.groundSpeed;
-
+      if (this.firstInputReceived && portalSystem.shouldSpawnPipes()) {
         this.pipeManager.update(currentTime);
+      }
 
-        if (this.pipeManager.checkCollision(this.bird, this.baseGroundY)) {
-            this.endGame();
+      if (this.firstInputReceived) {
+        powerUpSystem.update(currentTime);
+        this.pipeManager.updateSpeed(powerUpSystem.getPipeSpeed());
+
+        if (portalSystem.shouldSpawnPipes()) {
+          const isInvincible = powerUpSystem.isInvincible() || portalSystem.checkInvincibility();
+          if (!isInvincible) {
+            if (this.pipeManager.checkCollision(this.bird)) {
+              this.gameOver();
+              return;
+            }
+          }
+
+          if (this.pipeManager.checkScore(this.bird)) {
+            this.score += portalSystem.getScoreMultiplier();
+            this.updateInGameScore();
+            this.playSound('point');
+            this.addCoins(3 * portalSystem.getScoreMultiplier());
+          }
         }
+
+        const isBeingSuckedIn = portalSystem.isSuckingIn && portalSystem.isSuckingIn();
+        const isPortalTransitioning = portalSystem.isTransitioning && portalSystem.isTransitioning();
+        const isGroundInvincible = powerUpSystem.isInvincible() || portalSystem.checkInvincibility();
+        if (!isGroundInvincible && !isBeingSuckedIn && !isPortalTransitioning) {
+          if (this.bird.isOutOfBounds(this.groundY)) {
+            this.gameOver();
+            return;
+          }
+        }
+
+        if (portalSystem.canTrigger(this.score)) {
+          portalSystem.trigger();
+          this.pipeManager.reset();
+        }
+        portalSystem.update();
+
+        if (portalSystem.updateAutopilot) {
+          portalSystem.updateAutopilot();
+        }
+
+        if (portalSystem.needsScreenShake) {
+          this.screenShake = {
+            intensity: portalSystem.screenShakeIntensity,
+            duration: portalSystem.screenShakeDuration,
+            startTime: Date.now()
+          };
+          portalSystem.needsScreenShake = false;
+        }
+
+        if (portalSystem.needsClearPipes) {
+          this.pipeManager.reset();
+          portalSystem.needsClearPipes = false;
+        }
+
+        rocketSystem.update(this.score);
+        gravitySystem.update();
+
+        const isBeingSuckedInRocket = portalSystem.isSuckingIn && portalSystem.isSuckingIn();
+        const isPortalTransitioningRocket = portalSystem.isTransitioning && portalSystem.isTransitioning();
+        const isRocketInvincible = powerUpSystem.isInvincible() || portalSystem.checkInvincibility();
+        if (!isRocketInvincible && !isBeingSuckedInRocket && !isPortalTransitioningRocket) {
+          if (rocketSystem.checkCollision(this.bird)) {
+            this.gameOverByRocket();
+            return;
+          }
+        }
+      }
+
+      this.groundX -= 1.5;
+      if (this.groundX <= -20) {
+        this.groundX = 0;
+      }
     }
 
-    endGame() {
-        this.state = "game-over";
+    if (this.gameState === "blasting") {
+      const blastComplete = this.bird.updateBlast();
+      rocketSystem.updateExplosions();
+      if (blastComplete) {
+        this.gameState = "dying";
+      }
+    }
+
+    if (this.gameState === "dying") {
+      this.bird.updateDying(this.groundY);
+      rocketSystem.updateExplosions();
+      if (this.bird.hasFallenOut()) {
         this.showGameOverScreen();
+      }
     }
 
-    openShop() {
-        if (this.shopScreen) {
-            this.shopScreen.classList.remove("hidden");
-        }
+    if (this.gameState === "gameOver") {
+      rocketSystem.updateExplosions();
+    }
+  }
+
+  drawBackground() {
+    const ctx = this.ctx;
+
+    ctx.fillStyle = "#70c5ce";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    if (this.spriteLoaded && this.spriteSheet) {
+      const cropY = 60;
+      const cropHeight = 150;
+
+      const bgWidth = this.backgroundSprite.width;
+
+      const scale = 2.7;
+      const scaledWidth = bgWidth * scale;
+      const scaledHeight = cropHeight * scale;
+
+      const bgY = this.groundY - scaledHeight;
+
+      const tilesNeeded = Math.ceil(this.canvas.width / scaledWidth) + 2;
+
+      for (let i = 0; i < tilesNeeded; i++) {
+        const xPos = this.bgX * scale + i * scaledWidth;
+
+        ctx.drawImage(
+          this.spriteSheet,
+          this.backgroundSprite.x,
+          this.backgroundSprite.y + cropY,
+          this.backgroundSprite.width,
+          cropHeight,
+          xPos,
+          bgY,
+          scaledWidth,
+          scaledHeight,
+        );
+      }
+    }
+  }
+
+  drawGround() {
+    const ctx = this.ctx;
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+
+    if (this.spriteLoaded && this.spriteSheet) {
+      const groundSprite = {
+        x: 146,
+        y: 0,
+        width: 154,
+        height: 56,
+      };
+
+      const groundHeight = 80;
+      const spriteWidth = groundSprite.width;
+      const tilesNeeded = Math.ceil(this.canvas.width / spriteWidth) + 1;
+
+      for (let i = 0; i < tilesNeeded; i++) {
+        const xPos = Math.round(this.groundX + i * spriteWidth);
+
+        ctx.drawImage(
+          this.spriteSheet,
+          groundSprite.x,
+          groundSprite.y,
+          groundSprite.width,
+          groundSprite.height,
+          xPos,
+          Math.round(this.groundY),
+          Math.round(spriteWidth),
+          groundHeight,
+        );
+      }
+    } else {
+      ctx.fillStyle = "#DEB887";
+      ctx.fillRect(0, this.groundY, this.canvas.width, this.canvas.height - this.groundY);
+
+      ctx.fillStyle = "#8B4513";
+      ctx.fillRect(0, this.groundY, this.canvas.width, 15);
+
+      ctx.fillStyle = "#D2691E";
+      for (let i = this.groundX; i < this.canvas.width + 20; i += 20) {
+        ctx.fillRect(i, this.groundY + 15, 10, this.canvas.height - this.groundY - 15);
+      }
+    }
+  }
+
+  draw() {
+    const ctx = this.ctx;
+
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    let shakeX = 0, shakeY = 0;
+    if (this.screenShake.intensity > 0) {
+      const elapsed = Date.now() - this.screenShake.startTime;
+      if (elapsed < this.screenShake.duration) {
+        const progress = 1 - (elapsed / this.screenShake.duration);
+        const currentIntensity = this.screenShake.intensity * progress;
+        shakeX = (Math.random() - 0.5) * currentIntensity * 2;
+        shakeY = (Math.random() - 0.5) * currentIntensity * 2;
+      } else {
+        this.screenShake.intensity = 0;
+      }
     }
 
-    closeShop() {
-        if (this.shopScreen) {
-            this.shopScreen.classList.add("hidden");
-        }
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    if (portalSystem.isInNewWorld()) {
+      portalSystem.drawNewWorldBackground(ctx);
+    } else {
+      this.drawBackground();
     }
 
-    showStartScreen() {
-        if (this.startScreen) {
-            this.startScreen.classList.remove("hidden");
-        }
+    const shouldDrawPipes = this.gameState !== "start" && this.gameState !== "ready";
+    if (shouldDrawPipes && portalSystem.shouldSpawnPipes()) {
+      this.pipeManager.draw();
     }
 
-    hideStartScreen() {
-        if (this.startScreen) {
-            this.startScreen.classList.add("hidden");
-        }
+    if (portalSystem.isInNewWorld()) {
+      portalSystem.drawNewWorldGround(ctx, this.groundY);
+    } else {
+      this.drawGround();
     }
 
-    showGameOverScreen() {
-        if (this.gameOverScreen) {
-            this.gameOverScreen.classList.remove("hidden");
-        }
+    this.bird.draw();
+
+    if (this.gameState === "blasting" || this.bird.showBlast) {
+      this.bird.drawBlast();
     }
 
-    hideGameOverScreen() {
-        if (this.gameOverScreen) {
-            this.gameOverScreen.classList.add("hidden");
-        }
+    powerUpSystem.draw();
+    shieldSystem.draw();
+    rocketSystem.draw();
+    gravitySystem.draw();
+    portalSystem.draw();
+
+    if (spaceWorldSystem.isActive) {
+      spaceWorldSystem.draw(ctx);
     }
 
-    hideOverlays() {
-        this.hideStartScreen();
-        this.hideGameOverScreen();
-        this.closeShop();
+    ctx.restore();
+
+    if (this.bird.hitFlashAlpha > 0) {
+      ctx.save();
+      ctx.globalAlpha = this.bird.hitFlashAlpha * 0.5;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.restore();
+    }
+  }
+
+  gameLoop(currentTime) {
+    if (this.lastTime === null) {
+      this.lastTime = currentTime;
+      this.simulatedTime = currentTime;
+      this.accumulator = 0;
+      requestAnimationFrame((t) => this.gameLoop(t));
+      return;
     }
 
-    drawBackground() {
-        const ctx = this.ctx;
+    let deltaTime = currentTime - this.lastTime;
+    this.lastTime = currentTime;
 
-        if (this.sceneSpriteLoaded) {
-            const sprite = this.sceneSprites.background;
-            const scaledWidth = sprite.width * 2.7;
-            const scaledHeight = sprite.cropHeight * 2.7;
-            const bgY = this.baseGroundY - scaledHeight;
-            const tilesNeeded = Math.ceil(this.canvas.width / scaledWidth) + 2;
+    if (deltaTime > 200) deltaTime = 200;
 
-            if (this.bgX <= -scaledWidth) {
-                this.bgX = 0;
-            }
+    this.accumulator += deltaTime;
 
-            ctx.imageSmoothingEnabled = false;
-            ctx.fillStyle = "#70c5ce";
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const FIXED_STEP = 1000 / 60;
 
-            for (let index = 0; index < tilesNeeded; index += 1) {
-                const xPos = this.bgX + index * scaledWidth;
-
-                ctx.drawImage(
-                    this.sceneSpriteSheet,
-                    sprite.x,
-                    sprite.y + sprite.cropY,
-                    sprite.width,
-                    sprite.cropHeight,
-                    xPos,
-                    bgY,
-                    scaledWidth,
-                    scaledHeight
-                );
-            }
-            return;
-        }
-
-        const skyGradient = ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        skyGradient.addColorStop(0, "#7ed7f7");
-        skyGradient.addColorStop(0.7, "#d5f3ff");
-        skyGradient.addColorStop(1, "#f8e8ac");
-
-        ctx.fillStyle = skyGradient;
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        ctx.fillStyle = "rgba(255,255,255,0.85)";
-        ctx.beginPath();
-        ctx.arc(80, 110, 28, 0, Math.PI * 2);
-        ctx.arc(104, 100, 22, 0, Math.PI * 2);
-        ctx.arc(128, 112, 26, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(270, 150, 24, 0, Math.PI * 2);
-        ctx.arc(292, 140, 18, 0, Math.PI * 2);
-        ctx.arc(314, 152, 22, 0, Math.PI * 2);
-        ctx.fill();
+    while (this.accumulator >= FIXED_STEP) {
+      this.simulatedTime += FIXED_STEP;
+      this.update(this.simulatedTime);
+      this.accumulator -= FIXED_STEP;
     }
 
-    drawGround() {
-        const ctx = this.ctx;
+    this.draw();
 
-        if (this.sceneSpriteLoaded) {
-            const sprite = this.sceneSprites.ground;
-            const tilesNeeded = Math.ceil(this.canvas.width / sprite.width) + 2;
-
-            if (this.groundX <= -sprite.width) {
-                this.groundX = 0;
-            }
-
-            ctx.imageSmoothingEnabled = false;
-
-            for (let index = 0; index < tilesNeeded; index += 1) {
-                const xPos = Math.round(this.groundX + index * sprite.width);
-
-                ctx.drawImage(
-                    this.sceneSpriteSheet,
-                    sprite.x,
-                    sprite.y,
-                    sprite.width,
-                    sprite.height,
-                    xPos,
-                    this.baseGroundY,
-                    sprite.width,
-                    this.groundHeight
-                );
-            }
-            return;
-        }
-
-        ctx.fillStyle = "#ded895";
-        ctx.fillRect(0, this.baseGroundY, this.canvas.width, this.groundHeight);
-
-        ctx.fillStyle = "#b6d96c";
-        ctx.fillRect(0, this.baseGroundY, this.canvas.width, 18);
-
-        ctx.strokeStyle = "#9b8f48";
-        ctx.lineWidth = 2;
-
-        for (let x = 0; x < this.canvas.width; x += 24) {
-            ctx.beginPath();
-            ctx.moveTo(x, this.baseGroundY + 18);
-            ctx.lineTo(x + 12, this.baseGroundY + this.groundHeight);
-            ctx.stroke();
-        }
-    }
-
-    drawHud() {
-        const ctx = this.ctx;
-
-        if (this.state === "ready") {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-            ctx.fillRect(36, 40, this.canvas.width - 72, 72);
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 24px Segoe UI";
-            ctx.textAlign = "center";
-            ctx.fillText("Tap to Fly", this.canvas.width / 2, 70);
-            ctx.font = "16px Segoe UI";
-            ctx.fillText("Press Tab, Space or click", this.canvas.width / 2, 95);
-        }
-
-    }
-
-    draw() {
-        this.drawBackground();
-        this.pipeManager.draw(this.ctx, this.groundHeight);
-        this.drawGround();
-        this.bird.draw();
-        this.drawHud();
-    }
-
-    gameLoop(currentTime) {
-        const deltaTime = this.lastTime === 0 ? 16.67 : currentTime - this.lastTime;
-        this.lastTime = currentTime;
-
-        this.update(deltaTime, currentTime);
-        this.draw();
-
-        requestAnimationFrame((time) => this.gameLoop(time));
-    }
+    requestAnimationFrame((t) => this.gameLoop(t));
+  }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    new Game();
+function getHighScore() {
+  const score = localStorage.getItem("flappyBirdHighScore");
+  return score ? parseInt(score, 10) : 0;
+}
+
+function saveHighScore(score) {
+  localStorage.setItem("flappyBirdHighScore", score.toString());
+}
+
+function drawSettings(ctx, canvas) {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "white";
+  ctx.font = "bold 24px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Settings", canvas.width / 2, canvas.height / 2);
+}
+
+window.addEventListener("load", () => {
+  new Game();
 });

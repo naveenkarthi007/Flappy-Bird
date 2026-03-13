@@ -126,5 +126,62 @@ class Bird{
       bottom:this.y+this.height-8,
     };
   }
+
+
+die(){
+  this.isDead=true;
+  this.isDying = true;
+  this.blastTimer=0;
+  this.hitFlashAlpha=1;
 }
 
+dieByRocket(){
+  this.isDead=true;
+  this.showBlast=true;
+  this.blastTimer= 0;
+  this.hitFlashAlpha=1;
+}
+ updateBlast(){
+  this.blastTimer++;
+  this.hitFlashAlpha=Math.max(0,this.hitFlashAlpha-0.05);
+  if(this.blastTimer>20){
+    this.showBlast=false;
+    this.isDying= true;
+    this.velocity=-5;
+    return true;
+  }
+  return false;
+ }
+ updateDying(groundY){
+  this.velocity+=this.gravity;
+  this.y+=this.velocity;
+  this.rotation=90;
+  this.hitFlashAlpha=Math.max(0,this.hitFlashAlpha-0.02);
+ }
+
+ hasFallenOut(){
+  return this.y>this.canvas.height+50;
+ }
+
+ isOutOfBounds(groundY){
+  return this.y+this.height>=groundY || this.y<=0;
+ }
+
+ drawBlast(){
+  const ctx=this.ctx;
+  const cx=this.x+this.width/2;
+  const cy=this.y+this.height/2;
+  const r=30+this.blastTimer*2;
+  ctx.save();
+  const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+  grad.addColorStop(0,'rgba(255,200,50,0.8)');
+  grad.addColorStop(0.5,'rgba(255,100,0,0.4)');
+  grad.addColorStop(1,'rgba(255,50,0,0)');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+ }
+ 
+}

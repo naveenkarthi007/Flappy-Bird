@@ -1,20 +1,23 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-html,body{
-    width:100%;
-    height:100%;
-    overflow:hidden;
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
-body{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#000;
-    font-family:"Segoe UI",'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -22,255 +25,896 @@ body{
 }
 
 .game-container,
-#gameCanvas{
+#gameCanvas {
     touch-action: none;
     -webkit-touch-callout: none;
 }
 
-.game-container{
+.game-container {
     position: relative;
     width: 400px;
     height: 600px;
-    border-radius:0;
-    overflow:hidden;
+    border-radius: 0;
+    overflow: hidden;
     box-shadow: none;
-    background: #70c5ce;
 }
-#gameCanvas{
-    position:relative;
-    width:400px;
-    height:600px;
-    border-radius:0;
-    overflow:hidden;
-    box-shadow:none;
-    background:#70c5ce;
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #4ec0ca 0%, #70c5ce 100%);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: pixelated;
+    -moz-image-rendering: crisp-edges;
 }
-#gamecanvas{
-    display:block;
-    width:100%;
-    height:100%;
-    background:linear-gradient(180deg,#4ec0ca 0%,#4ec0ca 100%);
-    image-rendering:pixelated;
-    image-rendering:crisp-edges;
-    -webkit-image-rendering:pixelated;
-    -moz-image-rendering:crisp-edges;
-}
-[class *="sprite"],
+
+[class*="sprite"],
 .power-btn,
-.shield-btn{
-    image-rendering:pixelated;
-    image-rendering:crisp-edges;
-    -webkit-image-rendering:pixelated;
+.shield-btn {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: pixelated;
+    -moz-image-rendering: crisp-edges;
 }
 
-.screen{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    display:flex;
-    height:100%;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    color:#fff;
-    text-align:center;
-    z-index:10;
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
 }
 
-.hidden{
-    display:none !important;
+#startScreen {
+    background: transparent;
+    justify-content: flex-start;
+    padding-top: 100px;
+    gap: 0;
 }
 
-#startScreeb{
-    justify-content:flex-start;
-    gap:34;
-    padding-top:56px;
-    background:transperent;
+#getReadyScreen {
+    background: transparent;
+    justify-content: flex-start;
+    padding-top: 100px;
+    pointer-events: none;
 }
 
-.title-sprite{
-    width:113px;
-    height:98px;
-    margin-top:4px;
-    margin-bottom:24px;
-    transform:scale(1.75);
-    transform-origin:top center;
-    background:url('../assets/imags/flappybirdassets(1).png') no-repeat -328px -171px;
-}
-.start-sprite-button,
-.shop-sprite-button,
-.restart-sprite-button,
-.close-shop-sprite{
-    border:none;
-    padding:0;
-    background-color:transparent;
+.get-ready-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -146px -221px;
+    width: 87px;
+    height: 22px;
+    transform: scale(2.6);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: pixelated;
+    -moz-image-rendering: crisp-edges;
+    margin-top: 20px;
+    margin-bottom: 140px;
 }
 
-.start-sprite-button{
-    width:40px;
-    height:14px;
-    cursor:pointer;
-    transform:scale(2.8);
-    transform-origin:center;
-    transition:transform .18s ease;
-    background:url('../assets/images/flappybirdassets.png') no-repeat -242px -213px;
-}
-.start-sprite-button:hover,
-.restart-sprite-button:hover,
-.shop-sprite-button:hover,
-.close-shop-sprite:hover{
-    transform:scale(3);
+.tap-hint-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -172px -122px;
+    width: 39px;
+    height: 49px;
+    transform: scale(2);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: pixelated;
+    -moz-image-rendering: crisp-edges;
+    margin-top: 125px;
+    margin-left: 30px;
 }
 
-.shop-sprite-button{
-    width:40px;
-    height:14px;
-    cursor:pointer;
-    transform:scale(2.8);
-    transform-origin:center;
-    transition:transform .18s ease;
-    background:url('../assets/images/flappybirdassets(1).png') no-repeat -345px -150px;
+.flappy-bird-title-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -146px -173px;
+    width: 96px;
+    height: 22px;
+    transform: scale(2.8);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: pixelated;
+    -moz-image-rendering: crisp-edges;
+    margin-bottom: 20px;
 }
 
-#shopScreen{
-    justify-content:center;
-    background:rgba(0,0,0,0.72);
+
+.hidden {
+    display: none !important;
 }
 
-.shop-panel{
-    position:relative;
-    width:320px;
-    min-height:220px;
-    padding:28px 24px 24px;
-    border:3px solid #8b6914;
-    background:linear-gradient(180deg,#4c3419 0%,#2d1d0e 100%);
-    box-shadow:0 12px 32px rgba(0,0,0,.45);
+
+
+.start-sprite-button {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -242px -213px;
+    width: 40px;
+    height: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    transform: scale(2.7);
+    margin-top: 180px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: none;
+    padding: 0;
+    background-color: transparent;
 }
 
-.shop-heading-sprite{
-    width:113px;
-    height:58px;
-    margin:0 auto 18px;
-    transform:scale(1.35);
-    transform-origin:top center;
-    background:url('../assets/images/flappybirdassets.png') no-repeat -146px -58px;
+.start-sprite-button:hover {
+    transform: scale(2.9);
 }
 
-.shop-copy{
-    margin-top:38px;
-    color:#fff3cf;
-    font-size:18px;
-    line-height:1.5;
+.shop-sprite-button {
+    background: url('../assets/images/flappybirdassets\(1\).png') no-repeat -345px -150px;
+    width: 40px;
+    height: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    transform: scale(2.7);
+    margin-top: 45px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: none;
+    padding: 0;
+    background-color: transparent;
 }
 
-.close-shop-sprite{
-    position:absolute;
-    top:14px;
-    right:14px;
-    width:12px;
-    height:13px;
-    cursor:pointer;
-    transform-origin:center;
-    transition:transform .18s ease;
-    background:url('../assets/images/flappybirdassets.png') no-repeat -391px -133px;
+.shop-sprite-button:hover {
+    transform: scale(2.9);
 }
 
-#gameOverScreen{
-    justify-content:flex-start;
-    gap:44px;
-    padding-top:120px;
-    background:rgba(0,0,0,0.55);
+
+.sprite-button {
+    cursor: pointer;
+    display: block;
+    margin: 10px auto;
+    transition: transform 0.1s;
 }
 
-.game-over-sprite{
-    width:48px;
-    height:19px;
-    transform:scale(2.9);
-    transform-origin:top center;
-    background:url('../assets/imahes/flappybirdassets.png') no-repeat -146px -199px;
+.sprite-button:hover {
+    transform: scale(1.1);
 }
 
-.restart-sprite-button{
-    width:40px;
-    height:14px;
-    cursor:pointer;
-    transform:scale(2.8);
-    transform-origin:center;
-    transition:transform .18s ease;
-    background:url('../assets/images/flappybirdassets.png') no-repeat -246px -134px;
+.sprite-button:active {
+    transform: scale(0.95);
 }
 
-.top-pipe-sprite{
-    background:url('../assets/images/flappybirdassets.png') no-repeat -320px 0;
-    width:26px;
-    height:135px;
+
+.num-0 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -288px -100px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
-.bottom-pipe-sprite{
-    background:url('../assets/images/flappybirdassets.png') no-repeat -330px 0;
-    width:26px;
-    height:121px;
+.num-1 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -291px -118px;
+    width: 5px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
-@media screen and (max-width:480px) {
-    html,body{
-        width:100% !important;
-        height:100% !important;
-        min-height:100vh !important;
-        min-height:100dvh !important;
-        overflow:hidden !important;
-        background:#4ec0ca !important;
+.num-2 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -289px -134px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-3 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -289px -150px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-4 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -287px -173px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-5 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -287px -185px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-6 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -165px -245px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-7 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -175px -245px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-8 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -185px -245px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.num-9 {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -195px -245px;
+    width: 7px;
+    height: 10px;
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.sprite-score {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1px;
+}
+
+.sprite-score .num-digit {
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.in-game-score {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    z-index: 50;
+}
+
+.in-game-score .num-digit {
+    display: inline-block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    transform: scale(4);
+    transform-origin: center center;
+    margin: 0 10px;
+}
+
+.in-game-score.hidden {
+    display: none;
+}
+
+
+
+.hidden {
+    display: none !important;
+}
+
+.bronze-coin {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -302px -137px;
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+}
+
+.silver-coin {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -266px -229px;
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+}
+
+.gold-coin {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -242px -229px;
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+}
+
+.coin-hidden {
+    display: none !important;
+}
+
+#shopScreen {
+    background: rgba(0, 0, 0, 0.85);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.shop-panel {
+    background: linear-gradient(180deg, #2c1e0f 0%, #3d2b14 100%);
+    border: 3px solid #8B6914;
+    border-radius: 16px;
+    width: 340px;
+    padding: 0;
+    position: relative;
+    box-shadow:
+        0 0 0 2px #5a3e0a,
+        0 8px 32px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,215,0,0.15);
+    overflow: visible;
+}
+
+.shop-header {
+    background: linear-gradient(180deg, #4a3520 0%, #3d2b14 100%);
+    border-bottom: 2px solid #8B6914;
+    border-radius: 13px 13px 0 0;
+    padding: 18px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shop-title {
+    color: #FFD700;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    text-shadow:
+        0 2px 4px rgba(0,0,0,0.8),
+        0 0 10px rgba(255,215,0,0.3);
+    margin: 0;
+}
+
+.shop-coins-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,0.4);
+    padding: 5px 12px;
+    border-radius: 14px;
+    border: 1.5px solid #FFD700;
+    margin-right: 30px;
+}
+
+.shop-coins-display .coin-icon {
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle at 35% 35%, #FFE44D, #FFD700 40%, #E5A800);
+    border-radius: 50%;
+    border: 1.5px solid #B8860B;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+#shopCoinsAmount {
+    color: #FFD700;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.shop-items-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 16px 24px;
+}
+
+.shop-item-card {
+    background: linear-gradient(180deg, #F5EDD6 0%, #E8DFC0 100%);
+    border: 2px solid #C4A94D;
+    border-radius: 12px;
+    padding: 14px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 90px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    position: relative;
+    justify-content: space-between;
+}
+
+.shop-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4), 0 0 12px rgba(255,215,0,0.2);
+}
+
+.shop-item-card:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.shop-item-icon-wrap {
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, #FFF 0%, #EDE4C8 100%);
+    border: 2px solid #C4A94D;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.shop-item-name {
+    color: #3d2b14;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.shop-item-buy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: linear-gradient(180deg, #4CAF50, #388E3C);
+    padding: 3px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #2E7D32;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    color: #FFF;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background 0.15s;
+    width: 60px;
+    margin-top: auto;
+}
+
+.shop-item-card:hover .shop-item-buy {
+    background: linear-gradient(180deg, #5CBF60, #43A047);
+}
+
+.price-coin-icon {
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 35% 35%, #FFE44D, #FFD700 40%, #E5A800);
+    border-radius: 50%;
+    border: 1px solid #B8860B;
+    display: inline-block;
+}
+
+.qty-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(180deg, #FF5252, #D32F2F);
+    color: #FFF;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 11px;
+    padding: 0 5px;
+    z-index: 5;
+    border: 2px solid #FFF;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.shield-sprite {
+    background: url('../assets/images/flappybirdassets(1).png') no-repeat -433px -102px;
+    width: 22px;
+    height: 22px;
+}
+
+.power-sprite {
+    background: url('../assets/images/flappybirdassets(1).png') no-repeat -434px -128px;
+    width: 22px;
+    height: 22px;
+}
+
+.anti-bomb-sprite {
+    background: url('../assets/images/flappybirdassets(1).png') no-repeat -382px -102px;
+    width: 22px;
+    height: 22px;
+}
+
+.shop-item {
+    position: relative;
+    cursor: pointer;
+    transform: scale(2);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.close-shop-sprite {
+    background: url('../assets/images/flappybirdassets(1).png') no-repeat -391px -133px;
+    width: 12px;
+    height: 13px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    cursor: pointer;
+    z-index: 10;
+    transform: scale(2.2);
+    transform-origin: center;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    transition: transform 0.15s;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+
+.close-shop-sprite:hover {
+    transform: scale(2.8);
+}
+
+.shop-message {
+    position: absolute;
+    bottom: 100px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+.shop-message.success {
+    background: rgba(0, 200, 0, 0.8);
+}
+
+.shop-message.error {
+    background: rgba(200, 0, 0, 0.8);
+}
+
+.shop-message.hidden {
+    display: none;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(20px); }
+    20% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+.top-pipe-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -320px 0;
+    width: 26px;
+    height: 135px;
+}
+
+.bottom-pipe-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -330px 0;
+    width: 26px;
+    height: 121px;
+}
+
+@media screen and (max-width: 480px) {
+    html, body {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
+        overflow: hidden !important;
+        background: #4ec0ca !important;
     }
 
-    body{
-        align-items:stretch;
-        justify-content:center;
+    body {
+        align-items: stretch;
+        justify-content: center;
     }
 
-    .game-container{
-        position:fixed !important;
-        top:0 !important;
-        left:0 !important;
-        right:0 !important;
-        bottom:0 !important;
-        width:100vw !important;
-        height:100vh !important;
-        height:100dvh !important;
-        border-radius:0 !important;
-        box-shadow:none !important;
+    .game-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 
-    #gameCanvas{
-        position:absolute !important;
-        top:0 !important;
-        left:0 !important;
-        width:100% !important;
-        height:100% !important;
-        display:block;
+    #gameCanvas {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
     }
-  #startScreen{
-    padding-top:48px;
-    gap:28px;
-  }
 
-  .title-sprite{
-    transform:scale(1.45);
-    margin-bottom:8px;
-  }
+    .screen {
+        width: 100%;
+        height: 100%;
+    }
 
-  .start-sprite-button,
-  .shop-sprite-button,
-  .restart-sprite-button{
-    transform:scale(2.5);
-  }
+    #startScreen {
+        justify-content: flex-start !important;
+        padding-top: 5vh;
+        padding-bottom: 0;
+        gap: 0;
+    }
 
-  .shop-panel{
-    width:calc(100vw - 32px);
-    max-width:340px;
-  }
+    .flappy-bird-title-sprite {
+        transform: scale(2.8);
+        margin-bottom: 20px;
+    }
 
-  .shop-copy{
-    font-size:16px;
-  }
+    .start-sprite-button {
+        transform: scale(2.8);
+        margin-top: 36vh;
+        padding: 0;
+    }
+
+    .start-sprite-button:active {
+        transform: scale(2.5);
+    }
+
+    .shop-sprite-button {
+        background: url('../assets/images/flappybirdassets(1).png') no-repeat -247px -118px;
+        width: 40px;
+        height: 14px;
+        transform: scale(2.8);
+        margin-top: 5vh;
+        padding: 0;
+    }
+
+    .shop-sprite-button:active {
+        transform: scale(2.5);
+    }
+
+    .in-game-score {
+        top: 25px;
+    }
+
+    .in-game-score .num-digit {
+        transform: scale(3.5);
+        margin: 0 8px;
+    }
+
+    #shopScreen {
+        justify-content: center !important;
+    }
+
+    .shop-panel {
+        width: calc(100vw - 32px);
+        max-width: 360px;
+        border-radius: 14px;
+    }
+
+    .shop-header {
+        padding: 14px 16px 10px;
+    }
+
+    .shop-title {
+        font-size: 22px;
+        letter-spacing: 2px;
+    }
+
+    .shop-coins-display {
+        margin-right: 26px;
+        padding: 4px 10px;
+    }
+
+    .close-shop-sprite {
+        top: 10px;
+        right: 10px;
+        transform: scale(2.4);
+    }
+
+    .shop-items-row {
+        gap: 10px;
+        padding: 16px 12px 20px;
+    }
+
+    .shop-item-card {
+        width: 80px;
+        padding: 12px 8px 8px;
+        border-radius: 10px;
+    }
+
+    .shop-item-icon-wrap {
+        width: 44px;
+        height: 44px;
+    }
+
+    .shop-item {
+        transform: scale(1.7);
+    }
+
+    .shop-item-name {
+        font-size: 10px;
+    }
+
+    .shop-item-buy {
+        font-size: 11px;
+        padding: 3px 8px;
+        width: 54px;
+    }
+
+    .shop-message {
+        bottom: 80px;
+        font-size: 14px;
+        padding: 8px 16px;
+    }
 }
+
+@media screen and (max-width: 380px) {
+    .start-sprite-button {
+        transform: scale(2.4);
+    }
+
+    .shop-sprite-button {
+        transform: scale(2.4);
+    }
+
+    .flappy-bird-title-sprite {
+        transform: scale(2.4);
+    }
+
+    .shop-panel {
+        width: calc(100vw - 20px);
+    }
+
+    .shop-item-card {
+        width: 72px;
+        padding: 10px 6px 8px;
+    }
+
+    .shop-item-icon-wrap {
+        width: 38px;
+        height: 38px;
+    }
+
+    .shop-item {
+        transform: scale(1.5);
+    }
+
+    .shop-items-row {
+        gap: 8px;
+        padding: 12px 8px 16px;
+    }
+}
+
+@media screen and (max-height: 650px) and (max-width: 480px) {
+    #startScreen {
+        padding-bottom: 5vh;
+    }
+
+    .start-sprite-button {
+        transform: scale(2.2);
+        margin-top: 3vh;
+    }
+
+    .shop-sprite-button {
+        transform: scale(2.2);
+        margin-top: 3vh;
+    }
+
+    .flappy-bird-title-sprite {
+        transform: scale(2.2);
+    }
+
+    .in-game-score {
+        top: 14px;
+    }
+
+    .in-game-score .num-digit {
+        transform: scale(2.6);
+        margin: 0 6px;
+    }
+
+    .shop-panel {
+        max-width: 320px;
+    }
+
+    .shop-items-row {
+        padding: 12px 10px 16px;
+    }
+
+    .shop-item-card {
+        width: 74px;
+    }
+}
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    .game-container {
+        width: auto !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        aspect-ratio: 2 / 3;
+        margin: 0 auto;
+    }
+
+    #startScreen {
+        padding-bottom: 3vh;
+    }
+
+    .start-sprite-button {
+        transform: scale(2.0);
+        margin-top: 2vh;
+    }
+
+    .shop-sprite-button {
+        transform: scale(2.0);
+        margin-top: 2vh;
+    }
+
+    .flappy-bird-title-sprite {
+        transform: scale(2.0);
+    }
+
+    .in-game-score .num-digit {
+        transform: scale(2.2);
+        margin: 0 5px;
+    }
+
+    .shop-panel {
+        max-width: 280px;
+    }
+
+    .shop-item-card {
+        width: 66px;
+        padding: 8px 5px 6px;
+    }
+
+    .shop-item-icon-wrap {
+        width: 34px;
+        height: 34px;
+    }
+
+    .shop-item {
+        transform: scale(1.3);
+    }
+
+    .shop-item-name {
+        font-size: 9px;
+    }
+
+    .shop-items-row {
+        gap: 6px;
+        padding: 10px 6px 12px;
+    }
+
+    .shop-header {
+        padding: 10px 12px 8px;
+    }
+
+    .shop-title {
+        font-size: 18px;
+    }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+    .in-game-score {
+        top: calc(20px + env(safe-area-inset-top));
+    }
+}  
