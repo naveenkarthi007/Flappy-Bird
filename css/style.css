@@ -614,6 +614,96 @@ body {
     height: 121px;
 }
 
+.play-button-sprite{
+    background:url('../assets/images/flappybirdassets(1).png') no-repeat -287px -58px;
+    width:13px;
+    height:14px;
+    display:block;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    border:none;
+    padding:0;
+    background-color:transparent;
+}
+
+.pass-sprite{
+    background:url('../assets/images/flappybirdassets(1).png') no-repeat -287px -84px;
+    width:13px;
+    height:14px;
+    display:block;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    border:none;
+    padding:0;
+    background-color:transparent;
+}
+.game-controls{
+    position:absolute;
+    top:20px;
+    right:20px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    z-index:100;
+    pointer-events:auto;
+}
+
+.game-controls #toggleBtn {
+    cursor:pointer;
+    background-color:transparent;
+    padding:0;
+    width:13px;
+    height:14px;
+    transform:scale(2.5);
+    transform-origin:top right;
+    border-radius:0;
+    border:none;
+    pointer-events:auto;
+    user-select:none;
+    touch-action:manipulation;
+    opacity:0.9;
+    transition:transform 0.2s ease-out,opacity 0.2s ease-out;
+}
+
+.game-controls #toggleBtn:hover{
+    transform:scale(2.8);
+    opacity:1;
+}
+
+.game-controls #toggleBtn:active{
+    transform:scale(2.7);
+}
+
+.in-game-coins{
+    position:absolute;
+    top:10px;
+    left:10px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    background:rgba(0,0,0,0.5);
+    padding:4px 10px;
+    border-radius:12px;
+    z-index:50;
+}
+
+.in-game-coins.hidden {
+    display:none;
+ }
+ .mini-coin-icon {
+    width:12px;
+    height:12px;
+    background:#FFD700;
+    border-radius:50%;
+    border:1px solid #FFA500;
+ }
+
+#inGameCoinsAmount {
+    color:#FFD700;
+    font-size:12px;
+    font-weight:bold;
+ }
+
 @media screen and (max-width: 480px) {
     html, body {
         width: 100% !important;

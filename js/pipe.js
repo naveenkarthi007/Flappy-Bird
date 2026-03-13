@@ -203,7 +203,7 @@ class PipeManager {
     constructor(canvas) {
         this.canvas = canvas;
         this.pipes = [];
-        this.spawnInterval = 1800;
+        this.spawnInterval = 2200;
         this.lastSpawnTime = 0;
         this.groundY = canvas.height - 90;
         this.spriteLoaded = false;

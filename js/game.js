@@ -13,13 +13,20 @@ class Game {
     this.resizeCanvas();
     this.spriteLoaded = false;
 
+    const makeAudio = (src) => {
+      const a = new Audio();
+      a.addEventListener('error', () => {}, true);
+      a.src = src;
+      return a;
+    };
+
     this.sounds = {
-      flap: new Audio('assets/sounds/flap.mp3'),
-      point: new Audio('assets/sounds/point.mp3'),
-      hit: new Audio('assets/sounds/flappy-bird-hit-sound.mp3'),
-      die: new Audio('assets/sounds/die.mp3'),
-      swoosh: new Audio('assets/sounds/swoosh.mp3'),
-      blast: new Audio('assets/sounds/blast.mp3'),
+      flap: makeAudio('assets/sound/flap.mp3'),
+      point: makeAudio('assets/sound/point.mp3'),
+      hit: makeAudio('assets/sound/flappy-bird-hit-sound.mp3'),
+      die: makeAudio('assets/sound/die.mp3'),
+      swoosh: makeAudio('assets/sound/swoosh.mp3'),
+      blast: makeAudio('assets/sound/blast.mp3'),
     };
 
     this.sounds.flap.volume = 0.4;
@@ -29,7 +36,7 @@ class Game {
     this.sounds.swoosh.volume = 0.4;
     this.sounds.blast.volume = 0.6;
 
-    this.music = new Audio('assets/sounds/MainTheme.mp3');
+    this.music = makeAudio('assets/sound/MainTheme.mp3');
     this.music.loop = true;
     this.music.volume = 0.3;
 
@@ -129,6 +136,9 @@ class Game {
         this.spaceKeyHeld = true;
         e.preventDefault();
         this.handleInput();
+      } else if (e.code === "KeyP" || e.code === "Escape") {
+        e.preventDefault();
+        this.togglePause();
       }
     });
 
@@ -154,7 +164,7 @@ class Game {
         if (shopScreen && !shopScreen.classList.contains('hidden')) return true;
 
         return !!target.closest(
-          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, .shop-item-card, .shop-item'
+          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, #toggleBtn, .shop-item-card, .shop-item'
         );
       };
 
@@ -239,6 +249,19 @@ class Game {
     }
 
     this.setupShopItems();
+     document.addEventListener(
+      "pointerdown",
+      (e) => {
+        const target = e.target;
+        const toggleBtn = target instanceof Element ? target.closest("#toggleBtn"):null;
+        if(!toggleBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        this.togglePause();
+      },
+      {capture:true},
+     )   
+ 
   }
 
   handleInput() {
@@ -262,7 +285,7 @@ class Game {
     if (this.gameState === "start") {
       this.startGame();
     } else if (this.gameState === "ready") {
-      this.beginRun();
+      this.beginPlay();
     } else if (this.gameState === "playing") {
       if (portalSystem.isSuckingIn && portalSystem.isSuckingIn()) {
         return;
@@ -329,6 +352,56 @@ class Game {
 
   saveOwnedItems() {
     localStorage.setItem('flappybird_owned', JSON.stringify(this.ownedItems));
+  }
+
+  updatePowerQuantities(){
+    const powerQty = document.getElementById("powerQty");
+    const shieldQty = document.getElementById("shieldQty");
+    const gravityQty = document.getElementById("gravityQty");
+    const powerCount = this.ownedItems.power ||0;
+    const shieldCount=this.ownedItems.shield||0;
+    const gravityCount=this.ownedItems.antibomb||0;
+    if(powerQty){
+     powerQty.textContent = powerCount;
+     powerQty.classList.toogle("hidden",powerCount<=0);
+    }
+    if(shieldQty) {
+      shieldQty.textContent=shieldCount;
+      shieldQty.classList.toggle("hidden",shieldCount<=0);
+    }
+    if(gravityQty){
+      gravityQty.textContent = gravityCount;
+      gravityQty.classList.toggle("hidden",gravityCount <=0);
+    }
+  }
+
+  updateInGameCoins(){
+    const coinsElement = document.getElementById("inGameCoinsAmount");
+    if(coinsElement) {
+      coinsElement.textContent = this.playerCoins;
+    }
+  }
+
+  updateShieldButton(){
+    const shieldBtn = document.getElementById("shieldBtn");
+    if(!shieldBtn) return;
+    const qty=this.ownedItems.shield||0;
+    if(qty <=0 &&!shieldSystem.isProtecting()) {
+      shieldBtn.classList.remove("shield-used","shield-ready","shield-cooldown");
+      shieldBtn.classList.add("power-disabled");
+      return;
+    }
+    shieldBtn.classList.remove("power-disabled");
+    if(shieldSystem.isReady()) {
+      shieldBtn.classList.remove("shield-used","shield-cooldown");
+      shieldBtn.classList.add("shield-ready");
+    } else if(shieldSystem.isProtecting()) {
+      shieldBtn.classList.remove("shield-ready","shield-cooldown");
+      shieldBtn.classList.add("shield-used");
+    } else {
+      shieldBtn.classList.remove("shield-ready","shield-used");
+      shieldBtn.classList.add("shield-cooldown");
+    }
   }
 
   addCoins(amount) {
@@ -510,7 +583,6 @@ class Game {
     this.clearGameOverTimeout();
     this.gameState = "ready";
     this.firstInputReceived = false;
-    this.isPaused = false;
     this.pipeManager.reset();
     this.playSound('swoosh');
 
@@ -521,30 +593,60 @@ class Game {
 
     const getReadyScreen = document.getElementById("getReadyScreen");
     if (getReadyScreen) getReadyScreen.classList.remove("hidden");
+  }
+
+  beginPlay() {
+    this.clearGameOverTimeout();
+    this.gameState = "playing";
+    this.firstInputReceived = true;
+    this.isPaused = false;
 
     this.music.currentTime = 0;
     this.music.play().catch(() => {});
 
-    if (this.inGameScoreElement) {
-      this.inGameScoreElement.classList.add("hidden");
-      this.updateInGameScore();
-    }
-  }
-
-  beginRun() {
-    this.gameState = "playing";
-    this.firstInputReceived = true;
-
     const getReadyScreen = document.getElementById("getReadyScreen");
     if (getReadyScreen) getReadyScreen.classList.add("hidden");
 
+   const gameControls = document.getElementById("gameControls");
+   if(gameControls) gameControls.classList.remove("hidden");
+   const powersContainer = document.getElementById("powersContainer");
+   if(powersContainer) powersContainer.classList.remove("hidden");
+   this.updatePowerQuantities();
     if (this.inGameScoreElement) {
       this.inGameScoreElement.classList.remove("hidden");
       this.updateInGameScore();
     }
 
+   const inGameCoins = document.getElementById("inGameCoins");
+   if(inGameCoins) {
+    inGameCoins.classList.remove("hidden");
+    this.updateInGameCoins();
+   }
+  this.updatePowerQuantities();
+  this.updateShieldButton();
+  this.syncToggleButton();
+
     this.bird.flap();
     this.playSound('flap');
+  }
+
+  syncToggleButton() {
+    const toggleBtn = document.getElementById("toggleBtn");
+    if(!toggleBtn) return;
+    toggleBtn.classList.toggle("play-button-sprite",this.isPaused);
+    toggleBtn.classList.toggle("pass-sprite",!this.isPaused);
+    toggleBtn.title=this.isPaused?"Resume Game" : "Pause Game";
+  }
+
+  togglePause() {
+    if (this.gameState !== "playing") return;
+    this.isPaused = !this.isPaused;
+    if(this.isPaused) {
+      this.music.pause();
+    } else {
+      this.music.play().catch(() => {});
+    }
+    this.syncToggleButton();
   }
 
   gameOver() {
@@ -562,6 +664,14 @@ class Game {
         duration: 300,
         startTime: Date.now()
       };
+
+      const gameControls = document.getElementById("gameControls");
+      if (gameControls) gameControls.classList.add("hidden");
+
+      const powersContainer = document.getElementById("powersContainer");
+      if (powersContainer) powersContainer.classList.add("hidden");
+
+      this.syncToggleButton();
 
       powerUpSystem.deactivate();
       this.pipeManager.updateSpeed(1.5);
@@ -583,6 +693,14 @@ class Game {
         duration: 400,
         startTime: Date.now()
       };
+
+      const gameControls = document.getElementById("gameControls");
+      if (gameControls) gameControls.classList.add("hidden");
+
+      const powersContainer = document.getElementById("powersContainer");
+      if (powersContainer) powersContainer.classList.add("hidden");
+
+      this.syncToggleButton();
 
       powerUpSystem.deactivate();
       this.pipeManager.updateSpeed(1.5);
@@ -657,6 +775,8 @@ class Game {
     portalSystem.reset();
     spaceWorldSystem.reset();
 
+    this.updatePowerQuantities();
+
     this.gameState = "start";
 
     this.resizeCanvas();
@@ -664,12 +784,26 @@ class Game {
     if (this.inGameScoreElement) {
       this.inGameScoreElement.classList.add("hidden");
     }
+    
+    const inGameCoins = document.getElementById("inGameCoins");
+    if(inGameCoins) inGameCoins.classList.add("hidden");
+    const gameControls = document.getElementById("gameControls");
+    if(gameControls) gameControls.classList.add("hidden");
+    const powersContainer = document.getElementById("powersContainer");
+    if(powersContainer) powersContainer.classList.add("hidden");
+    this.syncToggleButton();
+
 
     const getReadyScreen = document.getElementById("getReadyScreen");
     if (getReadyScreen) getReadyScreen.classList.add("hidden");
 
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    if (gameOverScreen) gameOverScreen.classList.add("hidden");
+
     const startScreen = document.getElementById("startScreen");
     if (startScreen) startScreen.classList.remove("hidden");
+
+    this.updateStartScreenCoins();
   }
 
   updateStartScreenCoins() {
@@ -696,7 +830,7 @@ class Game {
         } else if (portalSystem.isAutopilotActive && portalSystem.isAutopilotActive()) {
           this.bird.updateAnimation(currentTime);
         } else {
-          this.bird.update(currentTime);
+          this.bird.update(currentTime, true);
 
           if (portalSystem.isInNewWorld() && !spaceWorldSystem.isActive) {
             spaceWorldSystem.activate();

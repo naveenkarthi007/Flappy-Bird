@@ -34,6 +34,11 @@ class Bird{
     this.currentFrame=0;
     this.lastFrameTime=0;
     this.autoFlyTime=0;
+    this.isDead=false;
+    this.isDying=false;
+    this.showBlast=false;
+    this.blastTimer=0;
+    this.hitFlashAlpha=0;
   }
 
   flap() {

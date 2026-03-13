@@ -9,6 +9,14 @@
     <body>
         <main class="game-container">
             <canvas id="gameCanvas" width="400" height="600" aria-label="Flappy Bird game"></canvas>
+           <div id="inGameScore" class="in-game-score hidden"></div>
+           <div id="inGameCoins" class="in-game-coins hidden">
+            <div class="mini-coin-icon"></div>
+            <span id="inGameCoinsAmount">0</span>
+           </div>
+           <div id="gameControls" class="game-controls hidden">
+            <button id="toggleBtn" class="pass-sprite" type="button" aria-label="Pause game"></button>
+           </div>
             <section id="startScreen" class="screen" aria-label="Start screen">
                 <div class="flappy-bird-title-sprite" aria-hidden="true"></div>
                 <button id="startBtn" class="start-sprite-button" type="button" aria-label="Start game"></button>
