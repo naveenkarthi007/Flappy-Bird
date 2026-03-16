@@ -99,21 +99,7 @@ const gravitySystem = {
   draw() {}
 };
 
-// Power-Up System
-const powerUpSystem = {
-  isActive: false,
-  init(bird, canvas) {},
-  reset() { this.isActive = false; },
-  activate(time) {
-    this.isActive = true;
-    return true;
-  },
-  deactivate() { this.isActive = false; },
-  update(time) {},
-  isInvincible() { return false; },
-  getPipeSpeed() { return 1.5; },
-  draw() {}
-};
+// Power-Up system is defined in js/powerup.js
 
 // Portal System
 const portalSystem = {
@@ -296,6 +282,10 @@ class Game {
         this.spaceKeyHeld = true;
         e.preventDefault();
         this.handleInput();
+      } else if (e.code === "KeyQ") {
+        if (e.repeat) return;
+        e.preventDefault();
+        this.activatePowerUpFromKey();
       } else if (e.code === "KeyP" || e.code === "Escape") {
         e.preventDefault();
         this.togglePause();
@@ -461,6 +451,18 @@ class Game {
         this.playSound('flap');
       }
     }
+  }
+
+  activatePowerUpFromKey() {
+    if (this.gameState !== "playing" || this.isPaused || !this.firstInputReceived) {
+      return;
+    }
+
+    const activated = powerUpSystem.activate(this.simulatedTime || performance.now());
+    if (!activated) return;
+
+    this.pipeManager.updateSpeed(powerUpSystem.getPipeSpeed());
+    this.playSound('swoosh');
   }
 
   toggleSettings() {
