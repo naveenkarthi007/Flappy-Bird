@@ -205,7 +205,7 @@ class PipeManager {
         this.pipes = [];
         this.spawnInterval = 2200;
         this.lastSpawnTime = 0;
-        this.groundY = canvas.height - 90;
+        this.groundY = canvas.height - 80;
         this.spriteLoaded = false;
         this.spriteSheet = new Image();
         this.spriteSheet.onload = () => {
@@ -215,6 +215,13 @@ class PipeManager {
             this.spriteLoaded = false;
         };
         this.spriteSheet.src = "assets/images/flappybirdassets.png";
+    }
+
+    setGroundY(groundY) {
+        this.groundY = groundY;
+        this.pipes.forEach((pipe) => {
+            pipe.groundY = groundY;
+        });
     }
 
     reset() {
@@ -244,6 +251,7 @@ class PipeManager {
 
         this.pipes.forEach((pipe) => {
             pipe.spriteLoaded = this.spriteLoaded;
+            pipe.groundY = this.groundY;
             pipe.update();
         });
 

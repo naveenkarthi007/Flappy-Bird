@@ -152,7 +152,7 @@ body {
 }
 
 .shop-sprite-button {
-    background: url('../assets/images/flappybirdassets\(1\).png') no-repeat -345px -150px;
+    background: url('../assets/images/flappybirdassets(1).png') no-repeat -345px -150px;
     width: 40px;
     height: 14px;
     cursor: pointer;
@@ -704,6 +704,92 @@ body {
     font-weight:bold;
  }
 
+.power-container,
+.powers-container{
+    position:absolute;
+    top:100px;
+    left:10px;
+    z-index:100;
+    pointer-events:auto;
+    display:flex;
+    flex-direction:column;
+    gap:50px;
+    align-items:flex-start;
+}
+.power-btn-wrapper{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+.power-icon{
+    cursor:pointer;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    transform:scale(3);
+    transform-origin:left;
+    transition:transform 0.2s,opacity 0.2s,filter 0.2s;
+    pointer-events:auto;
+    user-select:none;
+    touch-action:manipulation;
+    border:none;
+    padding:0;
+    background-color:transparent;
+}
+
+.power-icon:hover{
+    transform:scale(3.3);
+}
+.power-icon:active{
+    transform:scale(2.7);
+}
+
+.power-qty{
+    position:absolute;
+    bottom:-8px;
+    left:-4px;
+    color:#FFF;
+    font-size:9px;
+    font-weight:bold;
+    background:#e74c3c;
+    min-width:16px;
+    height:16px;
+    line-height:16px;
+    text-align:center;
+    border-radius:50%;
+    padding:0 3px;
+    white-space:nowrap;
+    z-index:5;
+    box-shadow:0 1px 3px rgba(0,0,0,0.5);
+}
+
+.power-icon.power-used,
+.power-icon.gravity-used,
+.power-icon.power-disabled{
+    opacity:0.35;
+    filter:grayscale(0.2);
+}
+.power-icon.power-used,
+.power-icon.gravity-used,
+.power-icon.shield-cooldown,
+.power-icon.power-disabled{
+    pointer-events:none;
+}
+
+.power-icon.shield-ready{
+    opacity:1;
+    filter:drop-shadow(0 0 6px rgba(0,255,160,0.55));
+}
+
+.power-icon.shield-used{
+    opacity:1;
+    filter:drop-shadow(0 0 8px rgba(0,191,255,0.7));
+}
+
+.power-icon.shield-cooldown{
+    opacity:0.55;
+}
+
 @media screen and (max-width: 480px) {
     html, body {
         width: 100% !important;
@@ -790,6 +876,27 @@ body {
         margin: 0 8px;
     }
 
+    .powers-container{
+        top:80px;
+        left:8px;
+        gap:44px;
+    }
+
+    .power-icon{
+        transform:scale(2.8);
+    }
+    .power-icon:hover{
+        transform:scale(3);
+    }
+    .power-icon:active{
+        transform:scale(2.4);
+    }
+    .power-qty{
+        font-size:8px;
+        min-width:14px;
+        height:14px;
+        line-height:14px;
+    }
     #shopScreen {
         justify-content: center !important;
     }
@@ -862,6 +969,10 @@ body {
         transform: scale(2.4);
     }
 
+    .power-icon {
+        transform: scale(2.4);
+    }
+
     .shop-sprite-button {
         transform: scale(2.4);
     }
@@ -897,6 +1008,15 @@ body {
 @media screen and (max-height: 650px) and (max-width: 480px) {
     #startScreen {
         padding-bottom: 5vh;
+    }
+
+    .powers-container {
+        top: 55px;
+        gap: 30px;
+    }
+
+    .power-icon {
+        transform: scale(2);
     }
 
     .start-sprite-button {
@@ -962,6 +1082,15 @@ body {
         transform: scale(2.0);
     }
 
+    .powers-container {
+        top: 45px;
+        gap: 22px;
+    }
+
+    .power-icon {
+        transform: scale(1.8);
+    }
+
     .in-game-score .num-digit {
         transform: scale(2.2);
         margin: 0 5px;
@@ -1006,5 +1135,10 @@ body {
 @supports (padding: env(safe-area-inset-top)) {
     .in-game-score {
         top: calc(20px + env(safe-area-inset-top));
+    }
+
+    .powers-container {
+        top: calc(70px + env(safe-area-inset-top));
+        left: calc(6px + env(safe-area-inset-left));
     }
 }  

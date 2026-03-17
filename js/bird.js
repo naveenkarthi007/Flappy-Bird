@@ -26,7 +26,7 @@ class Bird{
     this.reset();
   }
   reset(){
-    this.x=this.canvas.width/4-this.width/2;
+    this.x=this.canvas.width/2-this.width/2;
     this.y=this.canvas.height/3.2;
     this.baseY=this.canvas.height/3.2;
     this.velocity =0;

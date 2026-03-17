@@ -28,76 +28,11 @@ const coinSystem = {
   }
 };
 
-// Shield System
-const shieldSystem = {
-  bird: null,
-  canvas: null,
-  _protecting: false,
-  _health: 0,
-  _cooldown: 0,
-  _state: 'ready',
-  init(bird, canvas) {
-    this.bird = bird;
-    this.canvas = canvas;
-    this._state = 'ready';
-    this._protecting = false;
-    this._health = 0;
-  },
-  reset() {
-    this._state = 'ready';
-    this._protecting = false;
-    this._health = 0;
-  },
-  activate() {
-    if (this._state !== 'ready') return false;
-    this._state = 'active';
-    this._protecting = true;
-    this._health = 3;
-    return true;
-  },
-  isReady() { return this._state === 'ready'; },
-  isProtecting() { return this._protecting; },
-  getShieldHealth() { return this._health; },
-  getCooldownProgress() { return 1; },
-  onPipeHit() {
-    if (!this._protecting) return false;
-    this._health--;
-    if (this._health <= 0) {
-      this._protecting = false;
-      this._state = 'ready';
-    }
-    return true;
-  },
-  spawnPipeBreakParticles(pipe) {},
-  update() {},
-  draw() {}
-};
+// Shield system is defined in js/shield.js
 
 // Rocket system is defined in js/rocket.js
 
-// Gravity System
-const gravitySystem = {
-  isActive: false,
-  canvas: null,
-  init(canvas) {
-    this.canvas = canvas;
-  },
-  setGroundY(y) {},
-  reset() {
-    this.isActive = false;
-  },
-  activate() {
-    const activated = rocketSystem.activateGravityPower();
-    this.isActive = activated;
-    return activated;
-  },
-  update() {
-    if (this.isActive && !rocketSystem.hasActiveRockets()) {
-      this.isActive = false;
-    }
-  },
-  draw() {}
-};
+// Gravity system is defined in js/gravity.js
 
 // Power-Up system is defined in js/powerup.js
 
@@ -282,6 +217,14 @@ class Game {
         this.spaceKeyHeld = true;
         e.preventDefault();
         this.handleInput();
+      } else if (e.code === "KeyR") {
+        if (e.repeat) return;
+        e.preventDefault();
+        this.activateAntiGravityFromKey();
+      } else if (e.code === "KeyE") {
+        if (e.repeat) return;
+        e.preventDefault();
+        this.activateShieldFromKey();
       } else if (e.code === "KeyQ") {
         if (e.repeat) return;
         e.preventDefault();
@@ -314,7 +257,7 @@ class Game {
         if (shopScreen && !shopScreen.classList.contains('hidden')) return true;
 
         return !!target.closest(
-          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, #toggleBtn, .shop-item-card, .shop-item'
+          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, #toggleBtn, #powerBtn, #shieldBtn, #gravityBtn, .shop-item-card, .shop-item'
         );
       };
 
@@ -398,6 +341,38 @@ class Game {
       }, { passive: false });
     }
 
+    const powerBtn = document.getElementById("powerBtn");
+    if(powerBtn) {
+      powerBtn.addEventListener("click",(e)=> {
+        e.stopPropagation();
+        this.activatePowerUpFromKey();
+      });
+      powerBtn.addEventListener("touchstart",(e)=> {
+        e.preventDefault();
+        e.stopPropagation();
+        this.activatePowerUpFromKey();
+      },{passive:false});
+    }
+    const shieldBtn=document.getElementById("shieldBtn");
+    if(shieldBtn) {
+      shieldBtn.addEventListener("click",(e) => {
+        e.stopPropagation()
+        this.activateShieldFromKey();
+      } , {passive:false});
+    }
+    const gravityBtn=document.getElementById("gravityBtn");
+    if(gravityBtn) {
+      gravityBtn.addEventListener("click",(e)=> {
+        e.stopPropagation()
+        this.activateAntiGravityFromKey();
+      });
+      gravityBtn.addEventListener("toucjstart",(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.activateAntiGravityFromKey();
+      },{passive:false});
+    }
+
     this.setupShopItems();
      document.addEventListener(
       "pointerdown",
@@ -458,10 +433,68 @@ class Game {
       return;
     }
 
+    if ((this.ownedItems.power || 0) <= 0 || powerUpSystem.isInvincible()) {
+      this.syncPowerButtons();
+      return;
+    }
+
     const activated = powerUpSystem.activate(this.simulatedTime || performance.now());
     if (!activated) return;
 
+    this.ownedItems.power--;
+    this.saveOwnedItems();
+    this.updatePowerQuantities();
+    this.syncPowerButtons();
+
     this.pipeManager.updateSpeed(powerUpSystem.getPipeSpeed());
+    this.playSound('swoosh');
+  }
+
+  activateShieldFromKey() {
+    if (this.gameState !== "playing" || this.isPaused || !this.firstInputReceived) {
+      return;
+    }
+
+    if ((this.ownedItems.shield || 0) <= 0 && !shieldSystem.isProtecting()) {
+      this.syncPowerButtons();
+      return;
+    }
+
+    const activated = shieldSystem.activate();
+    if (!activated) {
+      this.syncPowerButtons();
+      return;
+    }
+
+    this.ownedItems.shield--;
+    this.saveOwnedItems();
+    this.updatePowerQuantities();
+
+    this.syncPowerButtons();
+    this.playSound('swoosh');
+  }
+
+  activateAntiGravityFromKey() {
+    if (this.gameState !== "playing" || this.isPaused || !this.firstInputReceived) {
+      return;
+    }
+
+    if ((this.ownedItems.antibomb || 0) <= 0 || !gravitySystem.isReady()) {
+      this.syncPowerButtons();
+      return;
+    }
+
+    const activated = gravitySystem.activate();
+    if (!activated) {
+      this.syncPowerButtons();
+      return;
+    }
+
+    this.ownedItems.antibomb--;
+    this.saveOwnedItems();
+    this.updatePowerQuantities();
+
+    this.syncPowerButtons();
     this.playSound('swoosh');
   }
 
@@ -566,6 +599,46 @@ class Game {
     }
   }
 
+  updatePowerButton() {
+    const powerBtn = document.getElementById("powerBtn");
+    if (!powerBtn) return;
+    const qty = this.ownedItems.power || 0;
+
+    powerBtn.classList.remove("power-used", "power-disabled");
+
+    if (powerUpSystem.isInvincible()) {
+      powerBtn.classList.add("power-used");
+      return;
+    }
+
+    if (qty <= 0) {
+      powerBtn.classList.add("power-disabled");
+    }
+  }
+
+  updateGravityButton() {
+    const gravityBtn = document.getElementById("gravityBtn");
+    if (!gravityBtn) return;
+    const qty = this.ownedItems.antibomb || 0;
+
+    gravityBtn.classList.remove("gravity-used", "power-disabled");
+
+    if (gravitySystem.isActive || !gravitySystem.isReady()) {
+      gravityBtn.classList.add("gravity-used");
+      return;
+    }
+
+    if (qty <= 0) {
+      gravityBtn.classList.add("power-disabled");
+    }
+  }
+
+  syncPowerButtons() {
+    this.updatePowerButton();
+    this.updateShieldButton();
+    this.updateGravityButton();
+  }
+
   addCoins(amount) {
     this.playerCoins += amount;
     this.savePlayerCoins();
@@ -628,7 +701,7 @@ class Game {
     this.saveOwnedItems();
     this.updateShopDisplay();
     this.updatePowerQuantities();
-    this.updateShieldButton();
+    this.syncPowerButtons();
     this.showShopMessage("Purchased! (x" + this.ownedItems[itemName] + ")", "success");
     return true;
   }
@@ -689,12 +762,17 @@ class Game {
         if (typeof gravitySystem !== 'undefined' && gravitySystem && gravitySystem.setGroundY) {
           gravitySystem.setGroundY(this.groundY);
         }
+
+        if (this.pipeManager && this.pipeManager.setGroundY) {
+          this.pipeManager.setGroundY(this.groundY);
+        }
       }
 
       if (this.bird) {
         const birdYFactor = 0.35;
 
         this.bird.baseY = this.canvas.height * birdYFactor;
+        this.bird.x = this.canvas.width / 2 - this.bird.width / 2;
         if (this.gameState === 'start') {
           this.bird.y = this.canvas.height * birdYFactor;
         }
@@ -720,9 +798,14 @@ class Game {
         this.groundY = this.canvas.height - 80;
         if (this.bird) {
           this.bird.baseY = this.canvas.height / 3.2;
+          this.bird.x = this.canvas.width / 2 - this.bird.width / 2;
         }
         if (typeof gravitySystem !== 'undefined' && gravitySystem && gravitySystem.setGroundY) {
           gravitySystem.setGroundY(this.groundY);
+        }
+
+        if (this.pipeManager && this.pipeManager.setGroundY) {
+          this.pipeManager.setGroundY(this.groundY);
         }
       }
 
@@ -785,7 +868,7 @@ class Game {
     this.updateInGameCoins();
    }
   this.updatePowerQuantities();
-  this.updateShieldButton();
+  this.syncPowerButtons();
   this.syncToggleButton();
 
     this.bird.flap();
@@ -938,6 +1021,7 @@ class Game {
     spaceWorldSystem.reset();
 
     this.updatePowerQuantities();
+    this.syncPowerButtons();
 
     this.gameState = "start";
 
@@ -1010,14 +1094,26 @@ class Game {
 
       if (this.firstInputReceived) {
         powerUpSystem.update(currentTime);
+        shieldSystem.update();
         this.pipeManager.updateSpeed(powerUpSystem.getPipeSpeed());
 
         if (portalSystem.shouldSpawnPipes()) {
           const isInvincible = powerUpSystem.isInvincible() || portalSystem.checkInvincibility();
           if (!isInvincible) {
             if (this.pipeManager.checkCollision(this.bird)) {
-              this.gameOver();
-              return;
+              if (shieldSystem.isProtecting()) {
+                const pipeHitInfo = this.pipeManager.destroyCollidingPipe(this.bird);
+                if (pipeHitInfo && shieldSystem.onPipeHit()) {
+                  shieldSystem.spawnPipeBreakParticles(pipeHitInfo);
+                  this.playSound('swoosh');
+                } else {
+                  this.gameOver();
+                  return;
+                }
+              } else {
+                this.gameOver();
+                return;
+              }
             }
           }
 
@@ -1065,6 +1161,7 @@ class Game {
 
         rocketSystem.update(this.score);
         gravitySystem.update();
+        this.syncPowerButtons();
 
         const isBeingSuckedInRocket = portalSystem.isSuckingIn && portalSystem.isSuckingIn();
         const isPortalTransitioningRocket = portalSystem.isTransitioning && portalSystem.isTransitioning();
@@ -1281,6 +1378,14 @@ class Game {
       this.lastTime = currentTime;
       this.simulatedTime = currentTime;
       this.accumulator = 0;
+      requestAnimationFrame((t) => this.gameLoop(t));
+      return;
+    }
+
+    if (this.isPaused && this.gameState === "playing") {
+      this.lastTime = currentTime;
+      this.accumulator = 0;
+      this.draw();
       requestAnimationFrame((t) => this.gameLoop(t));
       return;
     }

@@ -18,6 +18,20 @@
            <div id="gameControls" class="game-controls hidden">
             <button id="toggleBtn" class="pass-sprite" type="button" aria-label="Pause game"></button>
            </div>
+           <div id="powersContainer" class="powers-container hidden" aria-label="Power controls">
+            <div class="power-btn-wrapper">
+                <button id="powerBtn" class="power-icon power-sprite" type="button" aria-label="Use power boost"></button>
+                <span id="powerQty" class="power-qty hidden">0</span>
+            </div>
+            <div class="power-btn-wrapper">
+                <button id="shieldBtn" class="power-icon shield-sprite" type="button" aria-label="Use shield"></button>
+                <span id="shieldQty" class="power-qty hidden">0</span>
+            </div>
+            <div class="power-btn-wrapper">
+                <button id="gravityBtn" class="power-icon anti-bomb-sprite" type="button" aria-label="Use anti gravity"></button>
+                <span id="gravityQty" class="power-qty hidden">0</span>
+            </div>
+           </div>
             <section id="startScreen" class="screen" aria-label="Start screen">
                 <div class="flappy-bird-title-sprite" aria-hidden="true"></div>
                 <button id="startBtn" class="start-sprite-button" type="button" aria-label="Start game"></button>
@@ -29,18 +43,49 @@
             </section>
             <section id="shopScreen" class="screen hidden" aria-label="Shop screen">
                 <div class="shop-panel">
+                    <div class="shop-header">
+                        <h2 class="shop-title">SHOP</h2>
+                        <div class="shop-coins-display">
+                            <span class="coin-icon" aria-hidden="true"></span>
+                            <span id="shopCoinsAmount">0</span>
+                        </div>
+                    </div>
                     <button id="closeShopBtn" class="close-shop-sprite" type="button" aria-label="Close shop"></button>
-                    <div class="shop-heading-sprite" aria-hidden="true"></div>
-                    <p class="shop-copy">Shop items will go here.</p>
+                    <div class="shop-items-row">
+                        <div class="shop-item-card" role="button" tabindex="0" aria-label="Buy shield">
+                            <div class="shop-item-icon-wrap">
+                                <div class="shop-item shield-sprite" data-item="shield" data-price="20" aria-hidden="true"></div>
+                            </div>
+                            <div class="shop-item-name">Shield</div>
+                            <div class="shop-item-buy"><span class="price-coin-icon" aria-hidden="true"></span>20</div>
+                        </div>
+                        <div class="shop-item-card" role="button" tabindex="0" aria-label="Buy power boost">
+                            <div class="shop-item-icon-wrap">
+                                <div class="shop-item power-sprite" data-item="power" data-price="15" aria-hidden="true"></div>
+                            </div>
+                            <div class="shop-item-name">Power</div>
+                            <div class="shop-item-buy"><span class="price-coin-icon" aria-hidden="true"></span>15</div>
+                        </div>
+                        <div class="shop-item-card" role="button" tabindex="0" aria-label="Buy anti gravity">
+                            <div class="shop-item-icon-wrap">
+                                <div class="shop-item anti-bomb-sprite" data-item="antibomb" data-price="10" aria-hidden="true"></div>
+                            </div>
+                            <div class="shop-item-name">Gravity</div>
+                            <div class="shop-item-buy"><span class="price-coin-icon" aria-hidden="true"></span>10</div>
+                        </div>
+                    </div>
                 </div>
+                <div id="shopMessage" class="shop-message hidden" aria-live="polite"></div>
             </section>
             <section id="gameOverScreen" class="screen hidden" aria-label="Game over screen">
                 <div class="game-over-sprite" aria-hidden="true"></div>
             </section>
         </main>
         <script src="js/rocket.js"></script>
+        <script src="js/gravity.js"></script>
         <script src="js/coin.js"></script>
         <script src="js/powerup.js"></script>
+        <script src="js/shield.js"></script>
         <script src="js/bird.js"></script>
         <script src="js/pipe.js"></script>
         <script src="js/game.js"></script>
