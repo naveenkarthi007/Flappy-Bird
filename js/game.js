@@ -955,6 +955,9 @@ class Game {
   showGameOverScreen() {
     this.gameState = "gameOver";
 
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    if (gameOverScreen) gameOverScreen.classList.remove("hidden");
+
     this.forceSaveCoins();
 
     if (this.score > this.highScore) {

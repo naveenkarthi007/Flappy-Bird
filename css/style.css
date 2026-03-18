@@ -99,6 +99,18 @@ body {
     margin-top: 20px;
     margin-bottom: 140px;
 }
+.game-over-sprite{
+    background:url('../assests/images/flappybirdassets.png') no-repeat -146px -199px;
+    width:94px;
+    height:19px;
+    transform:scale(2.8);
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    -webkit-image-rendering:pixelated;
+    -moz-image-rendering:crisp-edges;
+    margin-top:40px;
+    margin-bottom:80px;
+}
 
 .tap-hint-sprite {
     background: url('../assets/images/flappybirdassets.png') no-repeat -172px -122px;
