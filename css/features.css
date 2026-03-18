@@ -1,0 +1,134 @@
+body {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    min-hight:100dvh;
+    background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+    margin:0;
+    padding:0;
+}
+
+.features-container{
+    background:rgba(0,0,0,0.8);
+    border:3px solid #654321;
+    border-radius:15px;
+    padding:50px;
+    text-align:center;
+    max-width:500px;
+    width:90%;
+    box-sizing:border-box;
+}
+.features-title{
+    color:#FFD700;
+    margin-bottom:40px;
+    font-size:36px;
+    text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+}
+.feature-grid{
+    display:flex;
+    justify-content:space-around;
+    margin:30px 0;
+    gap:40px;
+    flex-wrap:wrap;
+}
+.feature-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:15px;
+}
+.feature-item p{
+    color:#FFD700;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.feature-notes{
+    margin:top 18px;
+    text-align:left;
+}
+
+.features-subtitle {
+    color:#FFD700;
+    font-size:18px;
+    margin:8px 0 10px;
+}
+
+.shortcut-list{
+    margin:0;
+    padding-left:18px;
+    color:#FFD700;
+    font-size:14px;
+    line-height:1.4;
+}
+
+.shortcut-list li {
+    margin:6px 0;
+}
+.k {
+    font-weight:700;
+}
+
+.back-button-sprite{
+    background: url('../assets/images/flappybirdassets.png') no-repeat -242px -213px;
+    width:40px;
+    height:14px;
+    cursor:pointer;
+    transition:transform 0.2s;
+    transform:scale(2);
+    margin:30px auto 0;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+}
+.back-button-sprite:hover{
+    transform:scale(2.3);
+}
+.back-button-sprite:active{
+    transform:scale(1.9);
+}
+
+@media screen and (max-width:480px){
+    .features-container{
+        padding:30px 20px;
+        width:92%;
+        border-radius:12px;
+    }
+    .features-title {
+        font-size:26px;
+        margin-bottom:25px;
+    }
+    .feature-grid{
+        gap:24px;
+        margin:20px 0;
+    }
+
+    .feature-item p{
+        font-size:15px;
+    }
+
+    .features-subtitle{
+        font-size:16px;
+        margin-top:12px;
+    }
+    .shortcut-list{
+        font-size:13px;
+    }
+    .back-button-sprite{
+        transform:scale(2.4);
+        margin-top:25px;
+        padding:12px;
+    }
+}
+
+@media screen and (max-width:300px) {
+    .features-container{
+        padding:24px 16px;
+    }
+    .features-title {
+        font-size:22px;
+    }
+    .feature-item p{
+        font-size:14px;
+    }
+}

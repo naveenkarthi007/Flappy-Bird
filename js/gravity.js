@@ -109,7 +109,8 @@ class GravitySystem {
         }
 
         rocket.affectedByGravity = true;
-         rocket.velocityY = -2 + Math.random() * 20;
+         // Force a downward start so rockets reliably fall to the ground.
+         rocket.velocityY = 3 + Math.random() * 10;
          rocket.velocityX = (Math.random() - 0.5) *3;
 
         

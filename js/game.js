@@ -46,6 +46,12 @@ const portalSystem = {
   isInNewWorld() { return false; },
   shouldSpawnPipes() { return true; },
   checkInvincibility() { return false; },
+  isInvincible: false,
+  getInvincibilityAlpha() { return 1; },
+  getGravityMultiplier() { return 1; },
+  isInvincible: false,
+  getInvincibilityAlpha() { return 1; },
+  getGravityMultiplier() { return 1; },
   getScoreMultiplier() { return 1; },
   isSuckingIn() { return false; },
   isTransitioning() { return false; },
@@ -217,7 +223,7 @@ class Game {
         this.spaceKeyHeld = true;
         e.preventDefault();
         this.handleInput();
-      } else if (e.code === "KeyR") {
+      } else if (e.code === "KeyG") {
         if (e.repeat) return;
         e.preventDefault();
         this.activateAntiGravityFromKey();
@@ -257,7 +263,7 @@ class Game {
         if (shopScreen && !shopScreen.classList.contains('hidden')) return true;
 
         return !!target.closest(
-          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, #toggleBtn, #powerBtn, #shieldBtn, #gravityBtn, .shop-item-card, .shop-item'
+          '#startBtn, #shopBtn, #restartBtn, #closeShopBtn, #toggleBtn, #powerBtn, #shieldBtn, #gravityBtn, .shop-item-card, .shop-item, .features-link'
         );
       };
 
@@ -366,7 +372,7 @@ class Game {
         e.stopPropagation()
         this.activateAntiGravityFromKey();
       });
-      gravityBtn.addEventListener("toucjstart",(e) => {
+      gravityBtn.addEventListener("touchstart",(e) => {
         e.preventDefault();
         e.stopPropagation();
         this.activateAntiGravityFromKey();
@@ -1181,6 +1187,12 @@ class Game {
       if (this.groundX <= -20) {
         this.groundX = 0;
       }
+    }
+
+    // Keep gravity waves + ground-blast animations running in all states,
+    // but freeze them when the game is paused.
+    if (this.gameState !== "playing" && !this.isPaused) {
+      gravitySystem.update();
     }
 
     if (this.gameState === "blasting") {
