@@ -100,7 +100,7 @@ body {
     margin-bottom: 140px;
 }
 .game-over-sprite{
-    background:url('../assests/images/flappybirdassets.png') no-repeat -146px -199px;
+    background:url('../assets/images/flappybirdassets.png') no-repeat -146px -199px;
     width:94px;
     height:19px;
     transform:scale(2.8);
@@ -1176,4 +1176,131 @@ body {
         top: calc(70px + env(safe-area-inset-top));
         left: calc(6px + env(safe-area-inset-left));
     }
-}  
+}
+
+#gameOverScreen{
+    justify-content:flex-start;
+    flex-direction:column;
+    align-items:center;
+    padding-top:102px;
+    background:rgba(0,0,0,0.35);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+
+}
+
+.game-over-sprite{
+    margin-top:0;
+    margin-bottom:42px;
+}
+.scoreboard-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -146px -58px;
+    background-color: rgba(222, 216, 149, 0.92);
+    width: 113px;
+    height: 58px;
+    position: relative;
+    margin: 0 auto;
+    align-self: center;
+    transform: scale(3.25);
+    transform-origin: center top;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    margin-top: 20px;
+}
+
+.scoreboard-sprite #finalScore {
+    position: absolute;
+    top: 16px;
+    right: 13px;
+    width: 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1px;
+}
+
+.scoreboard-sprite #bestScore {
+    position: absolute;
+    top: 37px;
+    right: 13px;
+    width: 30px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1px;
+}
+
+.scoreboard-sprite #finalScore .num-digit,
+.scoreboard-sprite #bestScore .num-digit {
+    transform: scale(0.85);
+    transform-origin: center;
+}
+
+.scoreboard-sprite #medal {
+    position: absolute;
+    top: 21px;
+    left: 13px;
+}
+
+.new-best-sprite {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -146px -245px;
+    width: 16px;
+    height: 7px;
+    position: absolute;
+    top: 29px;
+    right: 32px;
+}
+
+.medal-bronze {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -302px -137px;
+    width: 22px;
+    height: 22px;
+}
+
+.medal-silver {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -266px -229px;
+    width: 22px;
+    height: 22px;
+}
+
+.medal-gold {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -242px -229px;
+    width: 22px;
+    height: 22px;
+}
+
+.medal-platinum {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -266px -137px;
+    width: 22px;
+    height: 22px;
+}
+
+.ok-button {
+    background: url('../assets/images/flappybirdassets.png') no-repeat -246px -134px;
+    width: 40px;
+    height: 14px;
+    border: none;
+    border-radius: 0;
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    cursor: pointer;
+    display: block;
+    margin: auto auto 60px;
+    margin-top: 250px;
+    padding: 0;
+    background-color: transparent;
+    transition: transform 0.2s;
+    transform: scale(2.7);
+    transform-origin: center;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.ok-button:hover {
+    transform: scale(2.9);
+}
+
+.ok-button:active {
+    transform: scale(2.5);
+}

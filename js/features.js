@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('backBtn');
 
     const goBack = () => {
-        // Prefer history back when the user navigated here from the game.
+        
         if (window.history.length > 1) {
             window.history.back();
             return;

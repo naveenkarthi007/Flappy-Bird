@@ -80,7 +80,14 @@
             </section>
             <section id="gameOverScreen" class="screen hidden" aria-label="Game over screen">
                 <div class="game-over-sprite" aria-hidden="true"></div>
-            </section>
+                <div id="scoreboard" class="scoreboard-sprite">
+                    <div id="finalScore"></div>
+                    <div id="bestScore"></div>
+                    <div id="newBest" class="new-best-sprite hidden"></div>
+                    <div id="medal" class="hidden"></div>
+                </div>
+                <button id="okBtn" class="ok-button" type="button" aria-label="OK">OK</button>
+                </section>
         </main>
         <script src="js/rocket.js"></script>
         <script src="js/gravity.js"></script>

@@ -1,4 +1,3 @@
-// Utility functions
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -12,7 +11,6 @@ function checkCollision(a, b) {
   );
 }
 
-// Coin System
 const coinSystem = {
   element: null,
   init(elementId) {
@@ -28,15 +26,6 @@ const coinSystem = {
   }
 };
 
-// Shield system is defined in js/shield.js
-
-// Rocket system is defined in js/rocket.js
-
-// Gravity system is defined in js/gravity.js
-
-// Power-Up system is defined in js/powerup.js
-
-// Portal System
 const portalSystem = {
   init(bird, canvas) {},
   reset() {},
@@ -67,7 +56,6 @@ const portalSystem = {
   needsClearPipes: false
 };
 
-// Space World System
 const spaceWorldSystem = {
   isActive: false,
   init(bird, canvas, addCoins) {},
@@ -92,13 +80,14 @@ class Game {
     this.canvas.height = 600;
     this.resizeCanvas();
     this.spriteLoaded = false;
-
-    // Sound folder is currently empty, so keep audio silent to avoid 404 noise.
-    const audioFilesAvailable = false;
+    
+    const audioFilesAvailable = true;
+    const soundBasePath = 'assets/sound';
 
     const makeAudio = (src) => {
       const a = new Audio();
       a.addEventListener('error', () => {}, true);
+      a.preload = 'auto';
       if (audioFilesAvailable) {
         a.src = src;
       }
@@ -108,12 +97,12 @@ class Game {
     this.audioEnabled = audioFilesAvailable;
 
     this.sounds = {
-      flap: makeAudio('assets/sound/flap.mp3'),
-      point: makeAudio('assets/sound/point.mp3'),
-      hit: makeAudio('assets/sound/flappy-bird-hit-sound.mp3'),
-      die: makeAudio('assets/sound/die.mp3'),
-      swoosh: makeAudio('assets/sound/swoosh.mp3'),
-      blast: makeAudio('assets/sound/blast.mp3'),
+     flap:makeAudio(`${soundBasePath}/flap.mp3`),
+     point:makeAudio(`${soundBasePath}/point.mp3`),
+     hit:makeAudio(`${soundBasePath}/flappy-bird-hit-sound.mp3`),
+     die:makeAudio(`${soundBasePath}/die.mp3`),
+     swoosh:makeAudio(`${soundBasePath}/swoosh.mp3`),
+     blast:makeAudio(`${soundBasePath}/blast.mp3`)
     };
 
     this.sounds.flap.volume = 0.4;
@@ -123,7 +112,7 @@ class Game {
     this.sounds.swoosh.volume = 0.4;
     this.sounds.blast.volume = 0.6;
 
-    this.music = makeAudio('assets/sound/MainTheme.mp3');
+    this.music = makeAudio(`${soundBasePath}/MainTheme.mp3`);
     this.music.loop = true;
     this.music.volume = 0.3;
 
@@ -200,7 +189,7 @@ class Game {
 
     shieldSystem.init(this.bird, this.canvas);
     rocketSystem.init(this.bird, this.canvas);
-    gravitySystem.init(this.canvas);
+    gravitySystem.init(this.canvas, this.groundY, () => this.playSound('blast'));
     gravitySystem.setGroundY(this.groundY);
     powerUpSystem.init(this.bird, this.canvas);
     portalSystem.init(this.bird, this.canvas);
@@ -212,8 +201,65 @@ class Game {
 
     this.spaceKeyHeld = false;
     this.lastInputTime = 0;
+     this.powerButtonSyncIntervalMs=120;
+     this.lastPowerButtonSyncTime=0;
+     this.fixedStepMs=1000/60;
+     this.displayRefreshHz=60;
+     this.maxDeltaMs=200;
+     this.maxSubSteps=6;
+     this.calibrateDisplayRefreshRate();
 
     requestAnimationFrame((t) => this.gameLoop(t));
+  }
+
+
+  async calibrateDisplayRefreshRate() {
+    const measuredHz = await this.measureDisplayRefreshRate();
+    if (!Number.isFinite(measuredHz)) return;
+
+    this.displayRefreshHz = Math.max(50, Math.min(240, Math.round(measuredHz)));
+    const displayFrameMs = 1000 / this.displayRefreshHz;
+
+    this.maxDeltaMs = Math.max(120, Math.min(250, displayFrameMs * 10));
+    this.maxSubSteps = this.displayRefreshHz >= 120 ? 4 : this.displayRefreshHz >= 90 ? 5 : 6;
+  }
+
+  measureDisplayRefreshRate(sampleCount = 45) {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        resolve(60);
+        return;
+      }
+
+      const stamps = [];
+      const tick = (ts) => {
+        stamps.push(ts);
+        if (stamps.length < sampleCount) {
+          requestAnimationFrame(tick);
+          return;
+        }
+
+        let total = 0;
+        let count = 0;
+        for (let i = 1; i < stamps.length; i++) {
+          const dt = stamps[i] - stamps[i - 1];
+          if (dt > 0 && dt < 100) {
+            total += dt;
+            count++;
+          }
+        }
+
+        if (count === 0) {
+          resolve(60);
+          return;
+        }
+
+        const avgFrameMs = total / count;
+        resolve(1000 / avgFrameMs);
+      };
+
+      requestAnimationFrame(tick);
+    });
   }
 
   bindEvents() {
@@ -359,23 +405,36 @@ class Game {
         this.activatePowerUpFromKey();
       },{passive:false});
     }
-    const shieldBtn=document.getElementById("shieldBtn");
-    if(shieldBtn) {
-      shieldBtn.addEventListener("click",(e) => {
-        e.stopPropagation()
+    const shieldBtn = document.getElementById("shieldBtn");
+    if (shieldBtn) {
+      shieldBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         this.activateShieldFromKey();
-      } , {passive:false});
+      }, { passive: false });
     }
-    const gravityBtn=document.getElementById("gravityBtn");
-    if(gravityBtn) {
-      gravityBtn.addEventListener("click",(e)=> {
-        e.stopPropagation()
+    const gravityBtn = document.getElementById("gravityBtn");
+    if (gravityBtn) {
+      gravityBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         this.activateAntiGravityFromKey();
       });
-      gravityBtn.addEventListener("touchstart",(e) => {
+      gravityBtn.addEventListener("touchstart", (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.activateAntiGravityFromKey();
+      },{passive:false});
+    }
+    const okBtn=document.getElementById("okBtn");
+    if(okBtn){
+      const homeHandler=(e)=>{
+        e.stopPropagation();
+        this.returnToHome();
+      };
+      okBtn.addEventListener("click",homeHandler);
+      okBtn.addEventListener("touchstart",(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        this.returnToHome();
       },{passive:false});
     }
 
@@ -512,6 +571,12 @@ class Game {
     const sound = this.sounds[name];
     if (!sound) return;
     try {
+      if (!sound.paused && sound.currentTime > 0) {
+        const overlapping = sound.cloneNode(true);
+        overlapping.volume = sound.volume;
+        overlapping.play().catch(() => {});
+        return;
+      }
       sound.currentTime = 0;
       sound.play().catch(() => {});
     } catch (e) {}
@@ -643,6 +708,14 @@ class Game {
     this.updatePowerButton();
     this.updateShieldButton();
     this.updateGravityButton();
+  }
+
+  syncPowerButtonsIfDue(currentTime) {
+    if (currentTime - this.lastPowerButtonSyncTime < this.powerButtonSyncIntervalMs) {
+      return;
+    }
+    this.lastPowerButtonSyncTime = currentTime;
+    this.syncPowerButtons();
   }
 
   addCoins(amount) {
@@ -970,13 +1043,43 @@ class Game {
       this.highScore = this.score;
       saveHighScore(this.score);
     }
+    this.updateSpriteScore("finalScore",this.score);
+    this.updateSpriteScore("bestScore",this.highScore);
+    this.updateMedal();
+    const newBest=document.getElementById("newBest");
+    if(newBest){
+      if(this.score>=this.highScore&&this.score>0){
+        newBest.classList.remove("hidden");
+      } else{
+        newBest.classList.add("hidden");
+      }
+    }
+
 
     if (this.inGameScoreElement) {
       this.inGameScoreElement.classList.add("hidden");
     }
 
-    // Auto-restart after a short delay
-    this.gameOverTimeoutId = setTimeout(() => this.returnToHome(), 2000);
+  }
+  updateMedal(){
+      const medal=document.getElementById("medal");
+      if(!medal)return;
+      medal.className="";
+      if(this.score>=30){
+        medal.classList.add("medal-platinum");
+        medal.classList.remove("hidden");
+      } else if (this.score>=20) {
+        medal.classList.add("medal-gold");
+        medal.classList.remove("hidden");
+      } else if(this.score>=10){
+        medal.classList.add("medal-silver");
+        medal.classList.remove("hidden");
+      } else if(this.score>=0) {
+        medal.classList.add("medal-bronze");
+        medal.classList.remove("hidden");
+      } else {
+        medal.classList.add("hidden");
+      }
   }
 
   generateSpriteNumberHTML(num) {
@@ -1062,7 +1165,6 @@ class Game {
   }
 
   updateStartScreenCoins() {
-    // no-op: coins removed from start screen
   }
 
   update(currentTime) {
@@ -1114,7 +1216,7 @@ class Game {
                 const pipeHitInfo = this.pipeManager.destroyCollidingPipe(this.bird);
                 if (pipeHitInfo && shieldSystem.onPipeHit()) {
                   shieldSystem.spawnPipeBreakParticles(pipeHitInfo);
-                  this.playSound('swoosh');
+                  this.playSound('blast');
                 } else {
                   this.gameOver();
                   return;
@@ -1170,7 +1272,7 @@ class Game {
 
         rocketSystem.update(this.score);
         gravitySystem.update();
-        this.syncPowerButtons();
+        this.syncPowerButtonsIfDue(currentTime);
 
         const isBeingSuckedInRocket = portalSystem.isSuckingIn && portalSystem.isSuckingIn();
         const isPortalTransitioningRocket = portalSystem.isTransitioning && portalSystem.isTransitioning();
@@ -1189,8 +1291,6 @@ class Game {
       }
     }
 
-    // Keep gravity waves + ground-blast animations running in all states,
-    // but freeze them when the game is paused.
     if (this.gameState !== "playing" && !this.isPaused) {
       gravitySystem.update();
     }
@@ -1408,16 +1508,21 @@ class Game {
     let deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    if (deltaTime > 200) deltaTime = 200;
+    if (deltaTime > this.maxDeltaMs) deltaTime = this.maxDeltaMs;
 
     this.accumulator += deltaTime;
 
-    const FIXED_STEP = 1000 / 60;
+    let subSteps = 0;
 
-    while (this.accumulator >= FIXED_STEP) {
-      this.simulatedTime += FIXED_STEP;
+    while (this.accumulator >= this.fixedStepMs && subSteps < this.maxSubSteps) {
+      this.simulatedTime += this.fixedStepMs;
       this.update(this.simulatedTime);
-      this.accumulator -= FIXED_STEP;
+      this.accumulator -= this.fixedStepMs;
+      subSteps++;
+    }
+
+    if (subSteps === this.maxSubSteps && this.accumulator >= this.fixedStepMs) {
+      this.accumulator = this.fixedStepMs;
     }
 
     this.draw();

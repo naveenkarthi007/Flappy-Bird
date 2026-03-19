@@ -2,6 +2,7 @@ class GravitySystem {
     constructor() {
         this.canvas = null;
         this.ctx = null;
+        this.onRocketGroundBlast = null;
         this.isActive = false;
         this.isUsed = false;
         this.cooldownTime = 10000;
@@ -46,10 +47,11 @@ class GravitySystem {
         this.blastSprite.src = 'assets/images/blast.png';
     }
 
-    init(canvas, groundY = null) {
+    init(canvas, groundY = null, onRocketGroundBlast = null) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.groundY = groundY || (canvas.height - 80);
+        this.onRocketGroundBlast = typeof onRocketGroundBlast === 'function' ? onRocketGroundBlast : null;
     }
     
     setGroundY(groundY) {
@@ -109,8 +111,7 @@ class GravitySystem {
         }
 
         rocket.affectedByGravity = true;
-         // Force a downward start so rockets reliably fall to the ground.
-         rocket.velocityY = 3 + Math.random() * 10;
+        rocket.velocityY = 3 + Math.random() * 10;
          rocket.velocityX = (Math.random() - 0.5) *3;
 
         
@@ -265,6 +266,10 @@ class GravitySystem {
     }
     
     createGroundExplosion(x, y) {
+        if (this.onRocketGroundBlast) {
+            this.onRocketGroundBlast();
+        }
+
         const explosion = {
             x: x,
             y: y,
